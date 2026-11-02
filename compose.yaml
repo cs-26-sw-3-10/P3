@@ -1,1 +1,14 @@
-services: {}
+services:
+  postgres:
+    image: postgres:17
+    environment:
+      POSTGRES_DB: p3
+      POSTGRES_USER: p3
+      POSTGRES_PASSWORD: local-dev-only
+    ports:
+      - "5432:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+
+volumes:
+  pgdata:
