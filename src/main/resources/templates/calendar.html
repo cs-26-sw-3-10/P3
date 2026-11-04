@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: head('Kalender')}"></head>
+<body class="app">
+  <nav th:replace="~{fragments/layout :: sidebar('kalender')}"></nav>
+
+  <main>
+    <header class="page-header">
+      <h1 th:text="${weekLabel}">Uge</h1>
+      <a class="button primary" href="#">+ Book tid</a>
+    </header>
+
+    <div class="week">
+      <section class="day" th:each="day : ${days}">
+        <h2 th:text="${day.label}">Dag</h2>
+
+        <p class="empty" th:if="${#lists.isEmpty(day.appointments)}">Ingen aftaler</p>
+
+        <article class="appointment"
+                 th:each="a : ${day.appointments}"
+                 th:classappend="${a.status == 'Aflyst'} ? 'cancelled'">
+          <div class="time" th:text="${a.time}">09:00–10:00</div>
+          <div th:text="${a.patient}">Patient</div>
+          <span class="badge" th:text="${a.status}">Status</span>
+        </article>
+      </section>
+    </div>
+  </main>
+</body>
+</html>

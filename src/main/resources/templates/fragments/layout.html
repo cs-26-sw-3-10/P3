@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+
+<head th:fragment="head(title)">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title th:text="${title} + ' · Tinas-KST'">Tinas-KST</title>
+  <link rel="stylesheet" th:href="@{/css/style.css}">
+</head>
+
+<body>
+<nav th:fragment="sidebar(active)" class="sidebar">
+  <div class="logo">Tinas-KST</div>
+  <a th:href="@{/kalender}" th:classappend="${active == 'kalender'} ? 'active'">Kalender</a>
+  <a th:href="@{/patienter}" th:classappend="${active == 'patienter'} ? 'active'">Patienter</a>
+
+  <!-- Log ud skal være POST med CSRF-token; th:action tilføjer tokenet automatisk -->
+  <form th:action="@{/logout}" method="post" class="logout">
+    <button type="submit" class="link">Log ud</button>
+  </form>
+</nav>
+</body>
+</html>
