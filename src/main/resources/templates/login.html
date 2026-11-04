@@ -1,0 +1,22 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: head('Log ind')}"></head>
+<body class="login">
+  <main class="login-box">
+    <h1>Tinas-KST</h1>
+
+    <p class="error" th:if="${param.error}">Forkert brugernavn eller kodeord.</p>
+    <p class="info" th:if="${param.logout}">Du er logget ud.</p>
+
+    <form th:action="@{/login}" method="post">
+      <label>Brugernavn
+        <input type="text" name="username" autofocus required>
+      </label>
+      <label>Kodeord
+        <input type="password" name="password" required>
+      </label>
+      <button type="submit" class="primary">Log ind</button>
+    </form>
+  </main>
+</body>
+</html>
