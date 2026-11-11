@@ -1,0 +1,214 @@
+:root {
+    --ink: #222;
+    --line: #ccc;
+    --panel: #f4f4f4;
+    --error: #b00020;
+}
+
+* {
+    box-sizing: border-box;
+}
+
+body {
+    margin: 0;
+    font-family: system-ui, sans-serif;
+    color: var(--ink);
+}
+
+/* Layout med sidemenu */
+body.app {
+    display: flex;
+    min-height: 100vh;
+}
+
+.sidebar {
+    width: 220px;
+    background: var(--panel);
+    border-right: 1px solid var(--line);
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    padding: 24px 16px;
+}
+
+.sidebar .logo {
+    font-weight: 600;
+    text-align: center;
+    margin-bottom: 24px;
+}
+
+.sidebar a {
+    padding: 10px 12px;
+    color: inherit;
+    text-decoration: none;
+}
+
+.sidebar a.active {
+    background: #fff;
+    border: 1px solid var(--line);
+    font-weight: 600;
+}
+
+.sidebar .logout {
+    margin-top: auto;
+}
+
+main {
+    flex: 1;
+    padding: 24px 32px;
+}
+
+/* Overskrift og knapper */
+.page-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-bottom: 1px solid var(--line);
+    padding-bottom: 16px;
+    margin-bottom: 24px;
+}
+
+.button,
+button {
+    font: inherit;
+    cursor: pointer;
+    padding: 10px 18px;
+    border: 1px solid var(--ink);
+    background: #fff;
+    color: var(--ink);
+    text-decoration: none;
+}
+
+.button.primary,
+button.primary {
+    background: var(--ink);
+    color: #fff;
+}
+
+button.link {
+    border: 0;
+    background: none;
+    padding: 10px 12px;
+    text-align: left;
+    width: 100%;
+}
+
+/* Ugevisning */
+.week {
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
+    gap: 12px;
+}
+
+.day h2 {
+    font-size: 15px;
+    border-bottom: 2px solid var(--line);
+    padding-bottom: 6px;
+}
+
+.day .empty {
+    color: #888;
+    font-size: 14px;
+}
+
+.appointment {
+    border: 1px solid #999;
+    background: var(--panel);
+    padding: 8px;
+    margin-bottom: 8px;
+}
+
+.appointment .time {
+    font-weight: 600;
+    font-size: 14px;
+}
+
+.appointment.cancelled {
+    border-style: dashed;
+    background: #fff;
+    color: #777;
+}
+
+.badge {
+    display: inline-block;
+    margin-top: 4px;
+    font-size: 12px;
+    border: 1px solid #999;
+    border-radius: 999px;
+    padding: 1px 8px;
+}
+
+/* Login */
+body.login {
+    display: grid;
+    place-items: center;
+    min-height: 100vh;
+    background: var(--panel);
+}
+
+.login-box {
+    background: #fff;
+    border: 1px solid var(--line);
+    padding: 32px;
+    width: 340px;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.login-box form {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.login-box label {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+input {
+    font: inherit;
+    padding: 8px 10px;
+    border: 1px solid var(--line);
+}
+
+.error {
+    color: var(--error);
+    margin: 0;
+}
+
+.info {
+    margin: 0;
+}
+
+/* Søgning og filter */
+.toolbar { display: flex; align-items: flex-end; gap: 16px; margin-bottom: 20px; }
+.search { display: flex; flex-direction: column; gap: 4px; width: 360px; }
+.search label { font-size: 14px; }
+.segmented { display: flex; border: 1px solid #999; }
+.segmented a { padding: 9px 16px; color: inherit; text-decoration: none; }
+.segmented a.active { background: var(--ink); color: #fff; font-weight: 600; }
+
+/* Tabel */
+.table { width: 100%; border-collapse: collapse; }
+.table th { text-align: left; font-size: 14px; padding: 10px 12px; border-bottom: 2px solid #999; }
+.table td { padding: 14px 12px; border-bottom: 1px solid var(--line); }
+.table .actions { text-align: right; }
+.table .actions a { color: inherit; }
+.empty { color: #888; }
+
+
+/* Formularer */
+.back { display: inline-block; margin-bottom: 8px; color: inherit; }
+.form { display: flex; flex-direction: column; gap: 16px; max-width: 480px; }
+.field { display: flex; flex-direction: column; gap: 4px; }
+.field label { font-size: 14px; }
+input.invalid { border-color: var(--error); }
+.checkbox { display: flex; gap: 8px; align-items: flex-start; font-size: 14px; }
+.checkbox input { margin-top: 3px; }
+.form-actions { display: flex; justify-content: flex-end; gap: 8px; margin-top: 8px; }
+
+/* Besked efter en handling */
+.notice { border: 1px solid var(--ink); background: var(--panel); padding: 10px 14px; }

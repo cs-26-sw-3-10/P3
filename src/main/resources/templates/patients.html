@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: head('Patienter')}"></head>
+<body class="app">
+  <nav th:replace="~{fragments/layout :: sidebar('patienter')}"></nav>
+
+  <main>
+    <header class="page-header">
+      <h1>Patienter</h1>
+      <a class="button primary" th:href="@{/patienter/ny}">+ Ny patient</a>
+    </header>
+
+    <div class="toolbar">
+      <!-- Søgning sendes som GET, så søgningen står i adressen og kan genindlæses -->
+      <form th:action="@{/patienter}" method="get" class="search">
+        <label for="q">Søg efter patienter</label>
+        <input id="q" type="search" name="q" th:value="${q}" placeholder="Navn eller telefon">
+        <input type="hidden" name="status" th:value="${status}">
+      </form>
+
+      <!-- Filteret beholder søgeteksten, når man skifter -->
+      <div class="segmented">
+        <a th:href="@{/patienter(status='alle', q=${q})}"
+           th:classappend="${status == 'alle'} ? 'active'">Alle</a>
+        <a th:href="@{/patienter(status='aktiv', q=${q})}"
+           th:classappend="${status == 'aktiv'} ? 'active'">Aktiv</a>
+        <a th:href="@{/patienter(status='afsluttet', q=${q})}"
+           th:classappend="${status == 'afsluttet'} ? 'active'">Afsluttet</a>
+      </div>
+    </div>
+
+    <table class="table" th:unless="${#lists.isEmpty(patients)}">
+      <thead>
+        <tr>
+          <th>Navn</th>
+          <th>Fødselsdato</th>
+          <th>Telefon</th>
+          <th>Næste aftale</th>
+          <th>Status</th>
+          <th></th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr th:each="p : ${patients}">
+          <td th:text="${p.name}">Navn</td>
+          <td th:text="${p.birthDate}">01-01-1980</td>
+          <td th:text="${p.phone}">12 34 56 78</td>
+          <td th:text="${p.nextAppointment} ?: '–'">–</td>
+          <td><span class="badge" th:text="${p.status}">Aktiv</span></td>
+          <td class="actions">
+            <a th:href="@{/patienter/{id}(id=${p.id})}">Åbn journal</a>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+
+    <p class="empty" th:if="${#lists.isEmpty(patients)}">Ingen patienter matcher søgningen.</p>
+  </main>
+</body>
+</html>
