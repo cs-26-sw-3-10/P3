@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: head('Ny patient')}"></head>
+<body class="app">
+  <nav th:replace="~{fragments/layout :: sidebar('patienter')}"></nav>
+
+  <main>
+    <a class="back" th:href="@{/patienter}">‹ Patienter</a>
+    <header class="page-header">
+      <h1>Ny patient</h1>
+    </header>
+
+    <!-- th:action tilføjer CSRF-tokenet; th:object binder felterne til PatientForm -->
+    <form th:action="@{/patienter}" th:object="${patientForm}" method="post" class="form" novalidate>
+
+      <div class="field">
+        <label for="name">Navn *</label>
+        <input id="name" type="text" th:field="*{name}" th:errorclass="invalid" autofocus>
+        <p class="error" th:if="${#fields.hasErrors('name')}" th:errors="*{name}"></p>
+      </div>
+
+      <div class="field">
+        <label for="birthDate">Fødselsdato *</label>
+        <input id="birthDate" type="date" th:field="*{birthDate}" th:errorclass="invalid">
+        <p class="error" th:if="${#fields.hasErrors('birthDate')}" th:errors="*{birthDate}"></p>
+      </div>
+
+      <div class="field">
+        <label for="phone">Telefon</label>
+        <input id="phone" type="tel" th:field="*{phone}" th:errorclass="invalid">
+        <p class="error" th:if="${#fields.hasErrors('phone')}" th:errors="*{phone}"></p>
+      </div>
+
+      <div class="field">
+        <label for="email">E-mail</label>
+        <input id="email" type="email" th:field="*{email}" th:errorclass="invalid">
+        <p class="error" th:if="${#fields.hasErrors('email')}" th:errors="*{email}"></p>
+      </div>
+
+      <div class="field">
+        <label for="address">Adresse</label>
+        <input id="address" type="text" th:field="*{address}" th:errorclass="invalid">
+        <p class="error" th:if="${#fields.hasErrors('address')}" th:errors="*{address}"></p>
+      </div>
+
+      <label class="checkbox">
+        <input type="checkbox" th:field="*{consent}">
+        Patienten har givet samtykke til, at klinikken behandler oplysningerne
+      </label>
+
+      <div class="form-actions">
+        <a class="button" th:href="@{/patienter}">Annullér</a>
+        <button type="submit" class="primary">Opret patient</button>
+      </div>
+    </form>
+  </main>
+</body>
+</html>
