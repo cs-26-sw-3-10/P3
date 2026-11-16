@@ -1,6 +1,7 @@
 package cs_26_sw_3_10.P3Project.ui;
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.Comparator;
 import java.util.List;
@@ -23,10 +24,10 @@ public class DemoData {
     public record PatientRow(long id, String name, String birthDate, String cpr, String phone,
                              String nextAppointment, String status) {}
 
-    // Ét journalnotat, som journalsiden viser det
+    // Ét journalnotat, som journalsiden viser det. appointment er tom, hvis notatet ikke hører til en aftale.
     public record NoteView(long id, long patientId, LocalDate date, String dateLabel, String status,
                            String symptoms, String observations, String treatment, String plan,
-                           String signedAt) {
+                           String signedAt, String appointment) {
         public boolean signed() {
             return "Signeret".equals(status);
         }
@@ -34,8 +35,10 @@ public class DemoData {
 
     private static final Locale DANISH = Locale.forLanguageTag("da");
     private static final DateTimeFormatter NOTE_DATE = DateTimeFormatter.ofPattern("EEE d. MMM yyyy", DANISH);
+    private static final DateTimeFormatter SIGNED_AT = DateTimeFormatter.ofPattern("d. MMM yyyy, HH:mm", DANISH);
 
     private final AtomicLong nextPatientId = new AtomicLong(7);
+    private final AtomicLong nextNoteId = new AtomicLong(5);
 
     private final List<PatientRow> patients = new CopyOnWriteArrayList<>(List.of(
         new PatientRow(1, "Patient A", "12-03-1985", "1111", "20 11 22 33", "Man. 2. nov. · 09:00", "Aktiv"),
@@ -87,18 +90,63 @@ public class DemoData {
 
     // ---------------------------------------------------------------- journalnotater
 
-    /** Patientens notater, nyeste først. */
+    /** Patientens notater, nyeste først. Notater fra samme dag står med det senest oprettede øverst. */
     public List<NoteView> notesFor(long patientId) {
         return notes.stream()
             .filter(n -> n.patientId() == patientId)
-            .sorted(Comparator.comparing(NoteView::date).reversed())
+            .sorted(Comparator.comparing(NoteView::date).thenComparingLong(NoteView::id).reversed())
             .toList();
+    }
+
+    /** Tilføjer et nyt notat. Et signeret notat får tidspunktet for signeringen. */
+    public NoteView addNote(long patientId, LocalDate date, String appointment, boolean sign,
+                            String symptoms, String observations, String treatment, String plan) {
+        String signedAt = sign ? LocalDateTime.now().format(SIGNED_AT) : null;
+        String linkedAppointment = appointment == null || appointment.isBlank() ? null : appointment;
+
+        NoteView note = new NoteView(nextNoteId.getAndIncrement(), patientId, date, label(date),
+            sign ? "Signeret" : "Åbent", symptoms, observations, treatment, plan, signedAt, linkedAppointment);
+        notes.add(note);
+        return note;
+    }
+
+    /** Finder et notat, men kun hvis det hører til den angivne patient. */
+    public Optional<NoteView> findNote(long patientId, long noteId) {
+        return notes.stream()
+            .filter(n -> n.id() == noteId && n.patientId() == patientId)
+            .findFirst();
+    }
+
+    /**
+     * Gemmer ændringer i en kladde. Et signeret notat er låst og kan ikke ændres,
+     * så det giver en fejl, hvis man forsøger.
+     */
+    public NoteView updateDraft(long noteId, LocalDate date, String appointment, boolean sign,
+                                String symptoms, String observations, String treatment, String plan) {
+        for (int i = 0; i < notes.size(); i++) {
+            NoteView existing = notes.get(i);
+            if (existing.id() != noteId) {
+                continue;
+            }
+            if (existing.signed()) {
+                throw new IllegalStateException("Et signeret notat kan ikke ændres");
+            }
+
+            String signedAt = sign ? LocalDateTime.now().format(SIGNED_AT) : null;
+            String linkedAppointment = appointment == null || appointment.isBlank() ? null : appointment;
+
+            NoteView updated = new NoteView(existing.id(), existing.patientId(), date, label(date),
+                sign ? "Signeret" : "Åbent", symptoms, observations, treatment, plan, signedAt, linkedAppointment);
+            notes.set(i, updated);
+            return updated;
+        }
+        throw new IllegalArgumentException("Notatet findes ikke: " + noteId);
     }
 
     private static NoteView note(long id, long patientId, LocalDate date, String status, String symptoms,
                                  String observations, String treatment, String plan, String signedAt) {
         return new NoteView(id, patientId, date, label(date), status,
-            symptoms, observations, treatment, plan, signedAt);
+            symptoms, observations, treatment, plan, signedAt, null);
     }
 
     // "tor. 29. okt. 2026" -> "Tor. 29. okt. 2026"

@@ -29,6 +29,9 @@
       </div>
     </header>
 
+    <!-- Besked efter fx et nyt notat; vises kun én gang -->
+    <p class="notice journal-notice" th:if="${message}" th:text="${message}">Notatet er gemt.</p>
+
     <div class="journal-body">
       <!-- Listen over notater, nyeste først -->
       <aside class="note-list">
@@ -52,6 +55,9 @@
           <h2>Behandling · <span th:text="${selected.dateLabel}">Dato</span></h2>
           <span class="badge" th:text="${selected.status}">Signeret</span>
         </header>
+        <p class="note-meta" th:if="${selected.appointment != null}">
+          Aftale: <span th:text="${selected.appointment}">Man. 2. nov. · 09:00</span>
+        </p>
 
         <div class="note-sections">
           <section>
@@ -86,7 +92,8 @@
           <th:block th:unless="${selected.signed()}">
             <span>Kladde – ikke signeret endnu</span>
             <div class="actions">
-              <a class="button primary" href="#">Fortsæt notat</a>
+              <a class="button primary"
+                 th:href="@{/patienter/{p}/notater/{n}/rediger(p=${patient.id}, n=${selected.id})}">Fortsæt notat</a>
             </div>
           </th:block>
         </footer>

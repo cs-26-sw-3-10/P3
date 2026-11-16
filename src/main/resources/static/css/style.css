@@ -428,3 +428,75 @@ main.journal {
 .empty-note {
     color: #888;
 }
+/* Nyt journalnotat */
+select,
+textarea {
+    font: inherit;
+    padding: 8px 10px;
+    border: 1px solid var(--line);
+    background: #fff;
+}
+
+textarea {
+    resize: vertical;
+    line-height: 1.5;
+}
+
+textarea.invalid {
+    border-color: var(--error);
+}
+
+.title-with-badge {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin: 0;
+}
+
+.page-header .meta {
+    color: #555;
+}
+
+.note-form {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+
+.note-form-top {
+    display: grid;
+    grid-template-columns: minmax(0, 360px) minmax(0, 200px);
+    gap: 20px;
+}
+
+.note-form-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 20px 24px;
+}
+
+.note-form-footer {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding-top: 16px;
+    border-top: 1px solid var(--line);
+    font-size: 14px;
+    color: #555;
+}
+
+.error.global {
+    border: 1px solid var(--error);
+    padding: 10px 14px;
+}
+
+/* Besked og aftale på journalsiden */
+.journal-notice {
+    margin: 16px 32px 0;
+}
+
+.note-meta {
+    margin: 6px 0 0;
+    font-size: 14px;
+    color: #555;
+}
