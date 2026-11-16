@@ -9,8 +9,11 @@
 </head>
 
 <body>
-<nav th:fragment="sidebar(active)" class="sidebar">
-  <div class="logo">Tinas-KST</div>
+  <nav th:fragment="sidebar(active)" class="sidebar">
+  <div class="logo">
+    <img th:src="@{/images/tinas-logo.png}" alt="Tinas-KST logo">
+    <span>Tinas-KST</span>
+</div>
   <a th:href="@{/kalender}" th:classappend="${active == 'kalender'} ? 'active'">Kalender</a>
   <a th:href="@{/patienter}" th:classappend="${active == 'patienter'} ? 'active'">Patienter</a>
 
