@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: head(${patient.name})}"></head>
+<body class="app">
+  <nav th:replace="~{fragments/layout :: sidebar('patienter')}"></nav>
+
+  <main class="journal">
+    <!-- Patientens oplysninger og handlinger -->
+    <header class="patient-header">
+      <div>
+        <a class="back" th:href="@{/patienter}">‹ Patienter</a>
+        <h1>
+          <span th:text="${patient.name}">Patient</span>
+          <span class="badge" th:text="${patient.status}">Aktiv</span>
+        </h1>
+        <p class="meta">
+          Født <span th:text="${patient.birthDate} ?: '–'">01-01-1980</span>
+          <span th:if="${patient.cpr != null and !#strings.isEmpty(patient.cpr)}">
+            · CPR …-<span th:text="${patient.cpr}">1234</span>
+          </span>
+          · Telefon <span th:text="${patient.phone} ?: '–'">12 34 56 78</span>
+        </p>
+      </div>
+      <div class="actions">
+        <!-- Book tid og PDF bygges senere -->
+        <a class="button" href="#">Book tid</a>
+        <a class="button" href="#">Eksportér PDF</a>
+        <a class="button primary" th:href="@{/patienter/{id}/notater/ny(id=${patient.id})}">+ Nyt notat</a>
+      </div>
+    </header>
+
+    <!-- Besked efter fx et nyt notat; vises kun én gang -->
+    <p class="notice journal-notice" th:if="${message}" th:text="${message}">Notatet er gemt.</p>
+
+    <div class="journal-body">
+      <!-- Listen over notater, nyeste først -->
+      <aside class="note-list">
+        <h2>Journalnotater (<span th:text="${#lists.size(notes)}">0</span>)</h2>
+
+        <p class="empty" th:if="${#lists.isEmpty(notes)}">Ingen notater endnu.</p>
+
+        <a class="note-item"
+           th:each="n : ${notes}"
+           th:href="@{/patienter/{id}(id=${patient.id}, notat=${n.id})}"
+           th:classappend="${selected != null and n.id == selected.id} ? 'selected'">
+          <strong th:text="${n.dateLabel}">Dato</strong>
+          <span class="badge" th:text="${n.status}">Signeret</span>
+          <span class="preview" th:text="${n.symptoms}">Symptomer</span>
+        </a>
+      </aside>
+
+      <!-- Det valgte notat -->
+      <article class="note" th:if="${selected != null}">
+        <header class="note-header">
+          <h2>Behandling · <span th:text="${selected.dateLabel}">Dato</span></h2>
+          <span class="badge" th:text="${selected.status}">Signeret</span>
+        </header>
+        <p class="note-meta" th:if="${selected.appointment != null}">
+          Aftale: <span th:text="${selected.appointment}">Man. 2. nov. · 09:00</span>
+        </p>
+
+        <div class="note-sections">
+          <section>
+            <h3>Symptomer</h3>
+            <p th:text="${selected.symptoms}">…</p>
+          </section>
+          <section>
+            <h3>Observationer</h3>
+            <p th:text="${selected.observations}">…</p>
+          </section>
+          <section>
+            <h3>Udført behandling</h3>
+            <p th:text="${selected.treatment}">…</p>
+          </section>
+          <section>
+            <h3>Plan</h3>
+            <p th:text="${selected.plan}">…</p>
+          </section>
+        </div>
+
+        <footer class="note-footer">
+          <!-- Signeret: kan ikke ændres, kun rettes. Rettelser bygges senere. -->
+          <th:block th:if="${selected.signed()}">
+            <span>Signeret af Tina · <span th:text="${selected.signedAt}">dato</span></span>
+            <div class="actions">
+              <a class="button" href="#">Vis rettelser</a>
+              <a class="button" href="#">Tilføj rettelse</a>
+            </div>
+          </th:block>
+
+          <!-- Åbent: en kladde, der endnu ikke er signeret -->
+          <th:block th:unless="${selected.signed()}">
+            <span>Kladde – ikke signeret endnu</span>
+            <div class="actions">
+              <a class="button primary"
+                 th:href="@{/patienter/{p}/notater/{n}/rediger(p=${patient.id}, n=${selected.id})}">Fortsæt notat</a>
+            </div>
+          </th:block>
+        </footer>
+      </article>
+
+      <article class="note empty-note" th:if="${selected == null}">
+        <p>Vælg "+ Nyt notat" for at skrive det første notat.</p>
+      </article>
+    </div>
+  </main>
+</body>
+</html>

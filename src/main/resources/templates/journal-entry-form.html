@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<!-- Samme side bruges til et nyt notat og til at fortsætte en kladde (editing = true) -->
+<head th:replace="~{fragments/layout :: head(${editing ? 'Fortsæt journalnotat' : 'Nyt journalnotat'})}"></head>
+<body class="app">
+  <nav th:replace="~{fragments/layout :: sidebar('patienter')}"></nav>
+
+  <main>
+    <a class="back" th:href="@{/patienter/{id}(id=${patient.id})}">‹ Tilbage til journal</a>
+    <header class="page-header">
+      <h1 class="title-with-badge">
+        <span th:text="${editing} ? 'Fortsæt journalnotat' : 'Nyt journalnotat'">Nyt journalnotat</span>
+        <span class="badge">Åbent</span>
+      </h1>
+      <span class="meta" th:text="${patient.name}">Patient</span>
+    </header>
+
+    <!-- th:action tilføjer CSRF-tokenet; th:object binder felterne til JournalEntryForm -->
+    <!-- formAction er /patienter/{id}/notater for et nyt notat og /patienter/{id}/notater/{notat} for en kladde -->
+    <form th:action="@{${formAction}}" th:object="${journalEntryForm}"
+          method="post" class="note-form" novalidate>
+
+      <!-- Fejl, der gælder hele notatet, fx at alle felter er tomme -->
+      <p class="error global" th:each="e : ${#fields.globalErrors()}" th:text="${e}">Fejl</p>
+
+      <div class="note-form-top">
+        <div class="field">
+          <label for="appointment">Aftale</label>
+          <select th:field="*{appointment}">
+            <option value="">Ingen aftale</option>
+            <option th:each="a : ${appointments}" th:value="${a}" th:text="${a}">Aftale</option>
+          </select>
+        </div>
+
+        <div class="field">
+          <label for="date">Dato *</label>
+          <input type="date" th:field="*{date}" th:errorclass="invalid">
+          <p class="error" th:if="${#fields.hasErrors('date')}" th:errors="*{date}"></p>
+        </div>
+      </div>
+
+      <!-- De fire faste afsnit i et notat -->
+      <div class="note-form-grid">
+        <div class="field">
+          <label for="symptoms">Symptomer</label>
+          <textarea th:field="*{symptoms}" th:errorclass="invalid" rows="8"></textarea>
+          <p class="error" th:if="${#fields.hasErrors('symptoms')}" th:errors="*{symptoms}"></p>
+        </div>
+
+        <div class="field">
+          <label for="observations">Observationer</label>
+          <textarea th:field="*{observations}" th:errorclass="invalid" rows="8"></textarea>
+          <p class="error" th:if="${#fields.hasErrors('observations')}" th:errors="*{observations}"></p>
+        </div>
+
+        <div class="field">
+          <label for="treatment">Udført behandling</label>
+          <textarea th:field="*{treatment}" th:errorclass="invalid" rows="8"></textarea>
+          <p class="error" th:if="${#fields.hasErrors('treatment')}" th:errors="*{treatment}"></p>
+        </div>
+
+        <div class="field">
+          <label for="plan">Plan</label>
+          <textarea th:field="*{plan}" th:errorclass="invalid" rows="8"></textarea>
+          <p class="error" th:if="${#fields.hasErrors('plan')}" th:errors="*{plan}"></p>
+        </div>
+      </div>
+
+      <footer class="note-form-footer">
+        <span>Når et notat er signeret, låses det. Senere ændringer tilføjes som rettelser.</span>
+        <div class="actions">
+          <!-- Knappernes value fortæller controlleren, om notatet skal gemmes eller signeres -->
+          <button type="submit" name="action" value="draft">Gem kladde</button>
+          <button type="submit" name="action" value="sign" class="primary">Signér og lås</button>
+        </div>
+      </footer>
+    </form>
+  </main>
+</body>
+</html>
