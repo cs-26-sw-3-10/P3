@@ -44,7 +44,10 @@
            th:href="@{/patienter/{id}(id=${patient.id}, notat=${n.id})}"
            th:classappend="${selected != null and n.id == selected.id} ? 'selected'">
           <strong th:text="${n.dateLabel}">Dato</strong>
-          <span class="badge" th:text="${n.status}">Signeret</span>
+          <span class="badges">
+            <span class="badge" th:text="${n.status}">Signeret</span>
+            <span class="badge" th:if="${n.corrected()}">Rettet</span>
+          </span>
           <span class="preview" th:text="${n.symptoms}">Symptomer</span>
         </a>
       </aside>
@@ -53,7 +56,10 @@
       <article class="note" th:if="${selected != null}">
         <header class="note-header">
           <h2>Behandling · <span th:text="${selected.dateLabel}">Dato</span></h2>
-          <span class="badge" th:text="${selected.status}">Signeret</span>
+          <span class="badges">
+            <span class="badge" th:text="${selected.status}">Signeret</span>
+            <span class="badge" th:if="${selected.corrected()}">Rettet</span>
+          </span>
         </header>
         <p class="note-meta" th:if="${selected.appointment != null}">
           Aftale: <span th:text="${selected.appointment}">Man. 2. nov. · 09:00</span>
@@ -79,12 +85,17 @@
         </div>
 
         <footer class="note-footer">
-          <!-- Signeret: kan ikke ændres, kun rettes. Rettelser bygges senere. -->
+          <!-- Signeret: kan ikke ændres, kun rettes. Hver rettelse gemmes som en ny version. -->
           <th:block th:if="${selected.signed()}">
-            <span>Signeret af Tina · <span th:text="${selected.signedAt}">dato</span></span>
+            <span>
+              Signeret af Tina · <span th:text="${selected.signedAt}">dato</span>
+              <span th:if="${selected.corrected()}"> · Rettet <span th:text="${selected.correctedAt}">dato</span></span>
+            </span>
             <div class="actions">
-              <a class="button" href="#">Vis rettelser</a>
-              <a class="button" href="#">Tilføj rettelse</a>
+              <a class="button" th:if="${selected.corrected()}"
+                 th:href="@{/patienter/{p}/notater/{n}/versioner(p=${patient.id}, n=${selected.id})}">Vis rettelser</a>
+              <a class="button"
+                 th:href="@{/patienter/{p}/notater/{n}/ret(p=${patient.id}, n=${selected.id})}">Tilføj rettelse</a>
             </div>
           </th:block>
 

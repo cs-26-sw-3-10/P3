@@ -23,14 +23,21 @@ import cs_26_sw_3_10.P3Project.ui.form.JournalEntryForm;
 import jakarta.validation.Valid;
 
 /**
- * Journalnotater for en patient: et nyt notat og at fortsætte en kladde.
- * Begge bruger samme formular (journal-entry-form.html).
+ * Journalnotater for en patient: et nyt notat, at fortsætte en kladde, at rette et
+ * signeret notat og at se et notats versioner.
+ * De tre første bruger samme formular (journal-entry-form.html) i hver sin tilstand.
  */
 @Controller
 @RequestMapping("/patienter/{patientId}/notater")
 public class JournalController {
 
-    private static final String LOCKED_MESSAGE = "Et signeret notat er låst og kan ikke ændres.";
+    // Formularens tre tilstande
+    private static final String MODE_NEW = "new";
+    private static final String MODE_DRAFT = "draft";
+    private static final String MODE_CORRECTION = "correction";
+
+    private static final String LOCKED_MESSAGE =
+        "Et signeret notat er låst og kan ikke ændres. Brug \"Tilføj rettelse\" i stedet.";
 
     // Midlertidige dummy-data, som deles med de andre sider. Erstattes af JournalService senere.
     private final DemoData data;
@@ -50,7 +57,7 @@ public class JournalController {
         form.setDate(LocalDate.now());
 
         model.addAttribute("journalEntryForm", form);
-        addPageData(model, patient, null);
+        addPageData(model, patient, null, MODE_NEW);
         return "journal-entry-form";
     }
 
@@ -66,7 +73,7 @@ public class JournalController {
         boolean sign = "sign".equals(action);
 
         if (hasErrors(journalEntryForm, result)) {
-            addPageData(model, patient, null);
+            addPageData(model, patient, null, MODE_NEW);
             return "journal-entry-form";
         }
 
@@ -94,16 +101,8 @@ public class JournalController {
             return redirectToNote(patientId, noteId);
         }
 
-        JournalEntryForm form = new JournalEntryForm();
-        form.setDate(note.date());
-        form.setAppointment(note.appointment());
-        form.setSymptoms(note.symptoms());
-        form.setObservations(note.observations());
-        form.setTreatment(note.treatment());
-        form.setPlan(note.plan());
-
-        model.addAttribute("journalEntryForm", form);
-        addPageData(model, patient, note);
+        model.addAttribute("journalEntryForm", formFrom(note));
+        addPageData(model, patient, note, MODE_DRAFT);
         return "journal-entry-form";
     }
 
@@ -127,7 +126,7 @@ public class JournalController {
         }
 
         if (hasErrors(journalEntryForm, result)) {
-            addPageData(model, patient, note);
+            addPageData(model, patient, note, MODE_DRAFT);
             return "journal-entry-form";
         }
 
@@ -139,14 +138,103 @@ public class JournalController {
         return redirectToNote(patientId, noteId);
     }
 
+    // ---------------------------------------------------------------- ret et signeret notat
+
+    // Viser formularen med notatets nuværende tekst, så den kan rettes. Kun for signerede notater.
+    @GetMapping("/{noteId}/ret")
+    public String editCorrection(@PathVariable long patientId,
+                                 @PathVariable long noteId,
+                                 Model model,
+                                 RedirectAttributes redirect) {
+        PatientRow patient = findPatient(patientId);
+        NoteView note = findNote(patientId, noteId);
+
+        if (!note.signed()) {
+            redirect.addFlashAttribute("message", "En kladde rettes med \"Fortsæt notat\".");
+            return redirectToNote(patientId, noteId);
+        }
+
+        model.addAttribute("journalEntryForm", formFrom(note));
+        addPageData(model, patient, note, MODE_CORRECTION);
+        return "journal-entry-form";
+    }
+
+    // Gemmer rettelsen som en ny version. Den oprindelige tekst bevares.
+    @PostMapping("/{noteId}/ret")
+    public String saveCorrection(@PathVariable long patientId,
+                                 @PathVariable long noteId,
+                                 @Valid @ModelAttribute JournalEntryForm journalEntryForm,
+                                 BindingResult result,
+                                 Model model,
+                                 RedirectAttributes redirect) {
+        PatientRow patient = findPatient(patientId);
+        NoteView note = findNote(patientId, noteId);
+
+        if (!note.signed()) {
+            redirect.addFlashAttribute("message", "En kladde rettes med \"Fortsæt notat\".");
+            return redirectToNote(patientId, noteId);
+        }
+
+        // En rettelse, der ikke ændrer noget, giver kun en tom version
+        if (DemoData.sameText(note, journalEntryForm.getSymptoms(), journalEntryForm.getObservations(),
+                journalEntryForm.getTreatment(), journalEntryForm.getPlan())) {
+            result.reject("unchanged", "Rettelsen er magen til den nuværende tekst. Ret mindst ét felt.");
+        }
+
+        if (hasErrors(journalEntryForm, result)) {
+            addPageData(model, patient, note, MODE_CORRECTION);
+            return "journal-entry-form";
+        }
+
+        data.addCorrection(noteId, journalEntryForm.getSymptoms(), journalEntryForm.getObservations(),
+            journalEntryForm.getTreatment(), journalEntryForm.getPlan(), journalEntryForm.getReason());
+
+        redirect.addFlashAttribute("message", "Rettelsen er gemt som en ny version.");
+        return redirectToNote(patientId, noteId);
+    }
+
+    // ---------------------------------------------------------------- versioner
+
+    // Viser alle versioner af et signeret notat, nyeste først
+    @GetMapping("/{noteId}/versioner")
+    public String versions(@PathVariable long patientId,
+                           @PathVariable long noteId,
+                           Model model,
+                           RedirectAttributes redirect) {
+        PatientRow patient = findPatient(patientId);
+        NoteView note = findNote(patientId, noteId);
+
+        if (!note.signed()) {
+            redirect.addFlashAttribute("message", "En kladde har ingen versioner, før den er signeret.");
+            return redirectToNote(patientId, noteId);
+        }
+
+        model.addAttribute("patient", patient);
+        model.addAttribute("note", note);
+        model.addAttribute("versions", data.versionsFor(noteId));
+        return "note-versions";
+    }
+
     // ---------------------------------------------------------------- hjælpemetoder
 
-    // Fælles regel: et notat uden tekst giver ingen mening, hverken som kladde eller signeret
+    // Fælles regel: et notat uden tekst giver ingen mening, hverken som kladde, signeret eller rettet
     private boolean hasErrors(JournalEntryForm form, BindingResult result) {
         if (form.hasNoText()) {
             result.reject("empty", "Skriv i mindst ét af de fire felter.");
         }
         return result.hasErrors();
+    }
+
+    // Udfylder formularen med notatets nuværende tekst
+    private static JournalEntryForm formFrom(NoteView note) {
+        JournalEntryForm form = new JournalEntryForm();
+        form.setDate(note.date());
+        form.setAppointment(note.appointment());
+        form.setSymptoms(note.symptoms());
+        form.setObservations(note.observations());
+        form.setTreatment(note.treatment());
+        form.setPlan(note.plan());
+        return form;
     }
 
     private PatientRow findPatient(long patientId) {
@@ -166,11 +254,11 @@ public class JournalController {
 
     /**
      * Data, siden skal bruge, både første gang og når formularen vises igen med fejl.
-     * note er kladden, der redigeres, eller null for et nyt notat.
+     * note er notatet, der redigeres eller rettes, eller null for et nyt notat.
      */
-    private void addPageData(Model model, PatientRow patient, NoteView note) {
+    private void addPageData(Model model, PatientRow patient, NoteView note, String mode) {
         // Indtil aftaler kommer fra databasen, kan man vælge patientens næste aftale
-        // og den aftale, kladden allerede er knyttet til
+        // og den aftale, notatet allerede er knyttet til
         List<String> appointments = new ArrayList<>();
         if (patient.nextAppointment() != null) {
             appointments.add(patient.nextAppointment());
@@ -179,14 +267,23 @@ public class JournalController {
             appointments.add(note.appointment());
         }
 
-        boolean editing = note != null;
-        String formAction = editing
-            ? "/patienter/" + patient.id() + "/notater/" + note.id()
-            : "/patienter/" + patient.id() + "/notater";
+        String base = "/patienter/" + patient.id() + "/notater";
+        String formAction = switch (mode) {
+            case MODE_DRAFT -> base + "/" + note.id();
+            case MODE_CORRECTION -> base + "/" + note.id() + "/ret";
+            default -> base;
+        };
+        String pageTitle = switch (mode) {
+            case MODE_DRAFT -> "Fortsæt journalnotat";
+            case MODE_CORRECTION -> "Ret journalnotat";
+            default -> "Nyt journalnotat";
+        };
 
         model.addAttribute("patient", patient);
+        model.addAttribute("note", note);
         model.addAttribute("appointments", appointments);
-        model.addAttribute("editing", editing);
+        model.addAttribute("mode", mode);
         model.addAttribute("formAction", formAction);
+        model.addAttribute("pageTitle", pageTitle);
     }
 }

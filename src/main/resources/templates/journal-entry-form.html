@@ -1,29 +1,32 @@
 <!DOCTYPE html>
 <html xmlns:th="http://www.thymeleaf.org">
-<!-- Samme side bruges til et nyt notat og til at fortsætte en kladde (editing = true) -->
-<head th:replace="~{fragments/layout :: head(${editing ? 'Fortsæt journalnotat' : 'Nyt journalnotat'})}"></head>
+<!--
+  Samme side bruges i tre tilstande (mode):
+  new = nyt notat, draft = fortsæt en kladde, correction = ret et signeret notat.
+-->
+<head th:replace="~{fragments/layout :: head(${pageTitle})}"></head>
 <body class="app">
   <nav th:replace="~{fragments/layout :: sidebar('patienter')}"></nav>
 
   <main>
-    <a class="back" th:href="@{/patienter/{id}(id=${patient.id})}">‹ Tilbage til journal</a>
+    <a class="back" th:href="@{/patienter/{id}(id=${patient.id}, notat=${note != null ? note.id : null})}">‹ Tilbage til journal</a>
     <header class="page-header">
       <h1 class="title-with-badge">
-        <span th:text="${editing} ? 'Fortsæt journalnotat' : 'Nyt journalnotat'">Nyt journalnotat</span>
-        <span class="badge">Åbent</span>
+        <span th:text="${pageTitle}">Nyt journalnotat</span>
+        <span class="badge" th:text="${mode == 'correction'} ? 'Signeret' : 'Åbent'">Åbent</span>
       </h1>
       <span class="meta" th:text="${patient.name}">Patient</span>
     </header>
 
     <!-- th:action tilføjer CSRF-tokenet; th:object binder felterne til JournalEntryForm -->
-    <!-- formAction er /patienter/{id}/notater for et nyt notat og /patienter/{id}/notater/{notat} for en kladde -->
     <form th:action="@{${formAction}}" th:object="${journalEntryForm}"
           method="post" class="note-form" novalidate>
 
       <!-- Fejl, der gælder hele notatet, fx at alle felter er tomme -->
       <p class="error global" th:each="e : ${#fields.globalErrors()}" th:text="${e}">Fejl</p>
 
-      <div class="note-form-top">
+      <!-- Nyt notat og kladde: aftale og dato kan vælges -->
+      <div class="note-form-top" th:unless="${mode == 'correction'}">
         <div class="field">
           <label for="appointment">Aftale</label>
           <select th:field="*{appointment}">
@@ -38,6 +41,17 @@
           <p class="error" th:if="${#fields.hasErrors('date')}" th:errors="*{date}"></p>
         </div>
       </div>
+
+      <!-- Rettelse: dato og aftale ændres ikke, men sendes med som skjulte felter -->
+      <th:block th:if="${mode == 'correction'}">
+        <p class="note-meta">
+          Behandling · <span th:text="${note.dateLabel}">Dato</span>
+          <span th:if="${note.appointment != null}"> · Aftale: <span th:text="${note.appointment}">Aftale</span></span>
+          · Signeret <span th:text="${note.signedAt}">dato</span>
+        </p>
+        <input type="hidden" th:field="*{date}">
+        <input type="hidden" th:field="*{appointment}">
+      </th:block>
 
       <!-- De fire faste afsnit i et notat -->
       <div class="note-form-grid">
@@ -66,13 +80,33 @@
         </div>
       </div>
 
+      <!-- Kun ved en rettelse: hvorfor notatet rettes -->
+      <div class="field reason-field" th:if="${mode == 'correction'}">
+        <label for="reason">Begrundelse for rettelsen</label>
+        <input type="text" th:field="*{reason}" th:errorclass="invalid"
+               placeholder="Fx tilføjet oplysning efter opfølgende samtale">
+        <p class="error" th:if="${#fields.hasErrors('reason')}" th:errors="*{reason}"></p>
+      </div>
+
       <footer class="note-form-footer">
-        <span>Når et notat er signeret, låses det. Senere ændringer tilføjes som rettelser.</span>
-        <div class="actions">
-          <!-- Knappernes value fortæller controlleren, om notatet skal gemmes eller signeres -->
-          <button type="submit" name="action" value="draft">Gem kladde</button>
-          <button type="submit" name="action" value="sign" class="primary">Signér og lås</button>
-        </div>
+        <!-- Nyt notat og kladde -->
+        <th:block th:unless="${mode == 'correction'}">
+          <span>Når et notat er signeret, låses det. Senere ændringer tilføjes som rettelser.</span>
+          <div class="actions">
+            <!-- Knappernes value fortæller controlleren, om notatet skal gemmes eller signeres -->
+            <button type="submit" name="action" value="draft">Gem kladde</button>
+            <button type="submit" name="action" value="sign" class="primary">Signér og lås</button>
+          </div>
+        </th:block>
+
+        <!-- Rettelse -->
+        <th:block th:if="${mode == 'correction'}">
+          <span>Den oprindelige tekst bevares. Rettelsen gemmes som en ny version.</span>
+          <div class="actions">
+            <a class="button" th:href="@{/patienter/{id}(id=${patient.id}, notat=${note.id})}">Annullér</a>
+            <button type="submit" class="primary">Gem rettelse</button>
+          </div>
+        </th:block>
       </footer>
     </form>
   </main>

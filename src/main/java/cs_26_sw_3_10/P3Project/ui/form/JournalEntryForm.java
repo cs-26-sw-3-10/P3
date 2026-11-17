@@ -34,6 +34,10 @@ public class JournalEntryForm {
     @Size(max = 4000, message = "Højst 4000 tegn")
     private String plan;
 
+    // Bruges kun ved en rettelse: hvorfor notatet rettes. Valgfri.
+    @Size(max = 500, message = "Begrundelsen må højst være 500 tegn")
+    private String reason;
+
     /** Sand, hvis ingen af de fire tekstfelter er udfyldt. */
     public boolean hasNoText() {
         return isBlank(symptoms) && isBlank(observations) && isBlank(treatment) && isBlank(plan);
@@ -55,4 +59,6 @@ public class JournalEntryForm {
     public void setTreatment(String treatment) { this.treatment = treatment; }
     public String getPlan() { return plan; }
     public void setPlan(String plan) { this.plan = plan; }
+    public String getReason() { return reason; }
+    public void setReason(String reason) { this.reason = reason; }
 }

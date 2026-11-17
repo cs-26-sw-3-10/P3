@@ -6,6 +6,7 @@ import java.time.format.DateTimeFormatter;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Locale;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.atomic.AtomicLong;
@@ -24,14 +25,29 @@ public class DemoData {
     public record PatientRow(long id, String name, String birthDate, String cpr, String phone,
                              String nextAppointment, String status) {}
 
-    // Ét journalnotat, som journalsiden viser det. appointment er tom, hvis notatet ikke hører til en aftale.
+    /**
+     * Ét journalnotat, som journalsiden viser det. Teksten er altid den nyeste version.
+     * appointment er tom, hvis notatet ikke hører til en aftale, og correctedAt er tom,
+     * hvis notatet aldrig er rettet.
+     */
     public record NoteView(long id, long patientId, LocalDate date, String dateLabel, String status,
                            String symptoms, String observations, String treatment, String plan,
-                           String signedAt, String appointment) {
+                           String signedAt, String appointment, String correctedAt) {
         public boolean signed() {
             return "Signeret".equals(status);
         }
+
+        public boolean corrected() {
+            return correctedAt != null;
+        }
     }
+
+    /**
+     * Én version af et signeret notat. Version 1 er teksten, som den så ud, da notatet
+     * blev signeret; hver rettelse giver en ny version. Versioner ændres eller slettes aldrig.
+     */
+    public record NoteVersion(long noteId, int number, String kind, String symptoms, String observations,
+                              String treatment, String plan, String savedAt, String reason) {}
 
     private static final Locale DANISH = Locale.forLanguageTag("da");
     private static final DateTimeFormatter NOTE_DATE = DateTimeFormatter.ofPattern("EEE d. MMM yyyy", DANISH);
@@ -70,6 +86,22 @@ public class DemoData {
             "Behandling af lænd og bækken, 60 min.",
             "Ny tid om to uger.", "26. okt. 2026, 13:05")));
 
+    private final List<NoteVersion> versions = new CopyOnWriteArrayList<>();
+
+    public DemoData() {
+        // De signerede eksempelnotater får deres oprindelige version
+        notes.stream().filter(NoteView::signed).forEach(n -> versions.add(originalVersion(n, n.signedAt())));
+
+        // Et eksempel på en rettelse, så versionshistorikken kan ses med det samme
+        applyCorrection(2,
+            "Hovedpine 3-4 gange om ugen. Sover dårligt i perioder med hovedpine.",
+            "Spænding i nakken, nedsat bevægelighed til venstre.",
+            "Behandling af nakke og skuldre, 60 min.",
+            "Følge op på hovedpinen og søvnen næste gang.",
+            "Tilføjet oplysning om søvn efter opfølgende samtale.",
+            "24. okt. 2026, 09:30");
+    }
+
     // ---------------------------------------------------------------- patienter
 
     public List<PatientRow> patients() {
@@ -98,15 +130,19 @@ public class DemoData {
             .toList();
     }
 
-    /** Tilføjer et nyt notat. Et signeret notat får tidspunktet for signeringen. */
+    /** Tilføjer et nyt notat. Et signeret notat får tidspunktet for signeringen og sin første version. */
     public NoteView addNote(long patientId, LocalDate date, String appointment, boolean sign,
                             String symptoms, String observations, String treatment, String plan) {
-        String signedAt = sign ? LocalDateTime.now().format(SIGNED_AT) : null;
-        String linkedAppointment = appointment == null || appointment.isBlank() ? null : appointment;
+        String signedAt = sign ? now() : null;
 
         NoteView note = new NoteView(nextNoteId.getAndIncrement(), patientId, date, label(date),
-            sign ? "Signeret" : "Åbent", symptoms, observations, treatment, plan, signedAt, linkedAppointment);
+            sign ? "Signeret" : "Åbent", symptoms, observations, treatment, plan, signedAt,
+            blankToNull(appointment), null);
         notes.add(note);
+
+        if (sign) {
+            versions.add(originalVersion(note, signedAt));
+        }
         return note;
     }
 
@@ -123,30 +159,102 @@ public class DemoData {
      */
     public NoteView updateDraft(long noteId, LocalDate date, String appointment, boolean sign,
                                 String symptoms, String observations, String treatment, String plan) {
+        int index = indexOf(noteId);
+        NoteView existing = notes.get(index);
+        if (existing.signed()) {
+            throw new IllegalStateException("Et signeret notat kan ikke ændres");
+        }
+
+        String signedAt = sign ? now() : null;
+        NoteView updated = new NoteView(existing.id(), existing.patientId(), date, label(date),
+            sign ? "Signeret" : "Åbent", symptoms, observations, treatment, plan, signedAt,
+            blankToNull(appointment), null);
+        notes.set(index, updated);
+
+        if (sign) {
+            versions.add(originalVersion(updated, signedAt));
+        }
+        return updated;
+    }
+
+    // ---------------------------------------------------------------- versioner og rettelser
+
+    /** Notatets versioner, nyeste først. Den første i listen er den, journalen viser. */
+    public List<NoteVersion> versionsFor(long noteId) {
+        return versions.stream()
+            .filter(v -> v.noteId() == noteId)
+            .sorted(Comparator.comparingInt(NoteVersion::number).reversed())
+            .toList();
+    }
+
+    /**
+     * Retter et signeret notat. Den gamle tekst bevares som en tidligere version,
+     * og rettelsen bliver den nye version, som journalen viser.
+     */
+    public NoteView addCorrection(long noteId, String symptoms, String observations, String treatment,
+                                  String plan, String reason) {
+        return applyCorrection(noteId, symptoms, observations, treatment, plan, reason, now());
+    }
+
+    /** Sand, hvis teksten er den samme som notatets nuværende tekst. */
+    public static boolean sameText(NoteView note, String symptoms, String observations, String treatment,
+                                   String plan) {
+        return same(note.symptoms(), symptoms) && same(note.observations(), observations)
+            && same(note.treatment(), treatment) && same(note.plan(), plan);
+    }
+
+    private NoteView applyCorrection(long noteId, String symptoms, String observations, String treatment,
+                                     String plan, String reason, String savedAt) {
+        int index = indexOf(noteId);
+        NoteView existing = notes.get(index);
+        if (!existing.signed()) {
+            throw new IllegalStateException("Kun signerede notater rettes; en kladde ændres direkte");
+        }
+
+        int number = versionsFor(noteId).size() + 1;
+        versions.add(new NoteVersion(noteId, number, "Rettelse", symptoms, observations, treatment, plan,
+            savedAt, blankToNull(reason)));
+
+        NoteView corrected = new NoteView(existing.id(), existing.patientId(), existing.date(),
+            existing.dateLabel(), existing.status(), symptoms, observations, treatment, plan,
+            existing.signedAt(), existing.appointment(), savedAt);
+        notes.set(index, corrected);
+        return corrected;
+    }
+
+    // ---------------------------------------------------------------- hjælpemetoder
+
+    private int indexOf(long noteId) {
         for (int i = 0; i < notes.size(); i++) {
-            NoteView existing = notes.get(i);
-            if (existing.id() != noteId) {
-                continue;
+            if (notes.get(i).id() == noteId) {
+                return i;
             }
-            if (existing.signed()) {
-                throw new IllegalStateException("Et signeret notat kan ikke ændres");
-            }
-
-            String signedAt = sign ? LocalDateTime.now().format(SIGNED_AT) : null;
-            String linkedAppointment = appointment == null || appointment.isBlank() ? null : appointment;
-
-            NoteView updated = new NoteView(existing.id(), existing.patientId(), date, label(date),
-                sign ? "Signeret" : "Åbent", symptoms, observations, treatment, plan, signedAt, linkedAppointment);
-            notes.set(i, updated);
-            return updated;
         }
         throw new IllegalArgumentException("Notatet findes ikke: " + noteId);
+    }
+
+    private static NoteVersion originalVersion(NoteView note, String signedAt) {
+        return new NoteVersion(note.id(), 1, "Oprindelig", note.symptoms(), note.observations(),
+            note.treatment(), note.plan(), signedAt, null);
     }
 
     private static NoteView note(long id, long patientId, LocalDate date, String status, String symptoms,
                                  String observations, String treatment, String plan, String signedAt) {
         return new NoteView(id, patientId, date, label(date), status,
-            symptoms, observations, treatment, plan, signedAt, null);
+            symptoms, observations, treatment, plan, signedAt, null, null);
+    }
+
+    // Tom tekst og null regnes for det samme, og mellemrum i enderne ignoreres
+    private static boolean same(String a, String b) {
+        return Objects.equals(blankToNull(a == null ? null : a.strip()), blankToNull(b == null ? null : b.strip()));
+    }
+
+    private static String blankToNull(String text) {
+        return text == null || text.isBlank() ? null : text;
+    }
+
+    private static String now() {
+        return LocalDateTime.now().format(SIGNED_AT);
     }
 
     // "tor. 29. okt. 2026" -> "Tor. 29. okt. 2026"
