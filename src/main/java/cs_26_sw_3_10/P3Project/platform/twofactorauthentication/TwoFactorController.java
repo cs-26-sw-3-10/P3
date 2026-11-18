@@ -24,8 +24,14 @@ public class TwoFactorController {
     @GetMapping("/setup")
     public String setup(HttpSession session, Model model, Principal principal) throws Exception {
         if (userService.hasTotp(principal.getName())) return "redirect:/2fa/verify";
-
-        String secret = totpService.generateSecret();
+        
+        //generate a secret only if does not exist
+        String secret = (String) session.getAttribute("pending2faSecret");
+        if (secret == null) 
+        {   
+        secret = totpService.generateSecret();
+        session.setAttribute("pending2faSecret", secret);
+        }
         session.setAttribute("pending2faSecret", secret);
         model.addAttribute("qrHtml", totpService.getQrCodeHtml("MyApp", principal.getName(), secret));
         model.addAttribute("secret", secret);
@@ -55,6 +61,7 @@ public class TwoFactorController {
         if (!userService.hasTotp(principal.getName())) return "redirect:/2fa/setup";
         return "authenticationverification";
     }
+    
 
     @PostMapping("/verify")
     public String verify(@RequestParam String pin, HttpSession session,
