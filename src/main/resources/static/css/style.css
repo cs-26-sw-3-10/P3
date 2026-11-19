@@ -544,3 +544,53 @@ textarea.invalid {
     font-size: 14px;
     color: #555;
 }
+
+/* Versionshistorik og rettelser */
+.badges {
+    display: inline-flex;
+    gap: 4px;
+    align-items: center;
+}
+
+.reason-field {
+    max-width: 640px;
+}
+
+.intro {
+    margin: 0 0 20px;
+    color: #555;
+    max-width: 70ch;
+}
+
+.version {
+    border: 1px solid var(--line);
+    padding: 20px 24px;
+    margin-bottom: 16px;
+}
+
+.version.current {
+    border: 2px solid var(--ink);
+}
+
+.version-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.version-header h2 {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin: 0;
+    font-size: 18px;
+}
+
+.version .note-sections {
+    margin-top: 16px;
+}
+
+.version .reason {
+    margin: 10px 0 0;
+    font-size: 14px;
+}
