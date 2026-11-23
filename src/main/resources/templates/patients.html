@@ -10,6 +10,9 @@
       <a class="button primary" th:href="@{/patienter/ny}">+ Ny patient</a>
     </header>
 
+    <!-- Besked efter fx oprettelse af en patient; vises kun én gang -->
+    <p class="notice" th:if="${message}" th:text="${message}">Patienten er oprettet.</p>
+
     <div class="toolbar">
       <!-- Søgning sendes som GET, så søgningen står i adressen og kan genindlæses -->
       <form th:action="@{/patienter}" method="get" class="search">

@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: head('Versioner af notat')}"></head>
+<body class="app">
+  <nav th:replace="~{fragments/layout :: sidebar('patienter')}"></nav>
+
+  <main>
+    <a class="back" th:href="@{/patienter/{id}(id=${patient.id}, notat=${note.id})}">‹ Tilbage til journal</a>
+    <header class="page-header">
+      <h1>Versioner af notatet</h1>
+      <span class="meta">
+        <span th:text="${patient.name}">Patient</span> · Behandling <span th:text="${note.dateLabel}">Dato</span>
+      </span>
+    </header>
+
+    <p class="intro">
+      Et signeret notat ændres aldrig. Hver rettelse er gemt som en ny version,
+      og den øverste er den, der vises i journalen.
+    </p>
+
+    <!-- Versionerne, nyeste først -->
+    <article class="version" th:each="v, stat : ${versions}" th:classappend="${stat.first} ? 'current'">
+      <header class="version-header">
+        <h2>
+          Version <span th:text="${v.number}">1</span>
+          <span class="badges">
+            <span class="badge" th:text="${v.kind}">Rettelse</span>
+            <span class="badge" th:if="${stat.first}">Gældende</span>
+          </span>
+        </h2>
+        <span class="meta" th:text="${v.savedAt}">dato</span>
+      </header>
+
+      <p class="reason" th:if="${v.reason != null}">
+        Begrundelse: <span th:text="${v.reason}">…</span>
+      </p>
+
+      <div class="note-sections">
+        <section>
+          <h3>Symptomer</h3>
+          <p th:text="${v.symptoms} ?: '–'">…</p>
+        </section>
+        <section>
+          <h3>Observationer</h3>
+          <p th:text="${v.observations} ?: '–'">…</p>
+        </section>
+        <section>
+          <h3>Udført behandling</h3>
+          <p th:text="${v.treatment} ?: '–'">…</p>
+        </section>
+        <section>
+          <h3>Plan</h3>
+          <p th:text="${v.plan} ?: '–'">…</p>
+        </section>
+      </div>
+    </article>
+  </main>
+</body>
+</html>

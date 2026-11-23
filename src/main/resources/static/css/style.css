@@ -240,31 +240,117 @@ input {
 }
 
 /* Søgning og filter */
-.toolbar { display: flex; align-items: flex-end; gap: 16px; margin-bottom: 20px; }
-.search { display: flex; flex-direction: column; gap: 4px; width: 360px; }
-.search label { font-size: 14px; }
-.segmented { display: flex; border: 1px solid #999; }
-.segmented a { padding: 9px 16px; color: inherit; text-decoration: none; }
-.segmented a.active { background: var(--ink); color: #fff; font-weight: 600; }
+.toolbar {
+    display: flex;
+    align-items: flex-end;
+    gap: 16px;
+    margin-bottom: 20px;
+}
+
+.search {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    width: 360px;
+}
+
+.search label {
+    font-size: 14px;
+}
+
+.segmented {
+    display: flex;
+    border: 1px solid #999;
+}
+
+.segmented a {
+    padding: 9px 16px;
+    color: inherit;
+    text-decoration: none;
+}
+
+.segmented a.active {
+    background: var(--ink);
+    color: #fff;
+    font-weight: 600;
+}
 
 /* Tabel */
-.table { width: 100%; border-collapse: collapse; }
-.table th { text-align: left; font-size: 14px; padding: 10px 12px; border-bottom: 2px solid #999; }
-.table td { padding: 14px 12px; border-bottom: 1px solid var(--line); }
-.table .actions { text-align: right; }
-.table .actions a { color: inherit; }
-.empty { color: #888; }
+.table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+.table th {
+    text-align: left;
+    font-size: 14px;
+    padding: 10px 12px;
+    border-bottom: 2px solid #999;
+}
+
+.table td {
+    padding: 14px 12px;
+    border-bottom: 1px solid var(--line);
+}
+
+.table .actions {
+    text-align: right;
+}
+
+.table .actions a {
+    color: inherit;
+}
+
+.empty {
+    color: #888;
+}
 
 
 /* Formularer */
-.back { display: inline-block; margin-bottom: 8px; color: inherit; }
-.form { display: flex; flex-direction: column; gap: 16px; max-width: 480px; }
-.field { display: flex; flex-direction: column; gap: 4px; }
-.field label { font-size: 14px; }
-input.invalid { border-color: var(--error); }
-.checkbox { display: flex; gap: 8px; align-items: flex-start; font-size: 14px; }
-.checkbox input { margin-top: 3px; }
-.form-actions { display: flex; justify-content: flex-end; gap: 8px; margin-top: 8px; }
+.back {
+    display: inline-block;
+    margin-bottom: 8px;
+    color: inherit;
+}
+
+.form {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    max-width: 480px;
+}
+
+.field {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.field label {
+    font-size: 14px;
+}
+
+input.invalid {
+    border-color: var(--error);
+}
+
+.checkbox {
+    display: flex;
+    gap: 8px;
+    align-items: flex-start;
+    font-size: 14px;
+}
+
+.checkbox input {
+    margin-top: 3px;
+}
+
+.form-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 8px;
+    margin-top: 8px;
+}
 
 /* Besked efter en handling */
 .notice { border: 1px solid var(--ink); background: var(--panel); padding: 10px 14px; }
@@ -713,4 +799,256 @@ input.invalid { border-color: var(--error); }
     box-shadow: none;
     margin: 1px 4px 2px 2px;
     transition: filter 0.2s ease;
+.notice {
+    border: 1px solid var(--ink);
+    background: var(--panel);
+    padding: 10px 14px;
+}
+
+/* Patientens journal */
+main.journal {
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+}
+
+.patient-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-end;
+    padding: 20px 32px;
+    border-bottom: 1px solid var(--line);
+}
+
+.patient-header h1 {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin: 4px 0;
+}
+
+.patient-header .meta {
+    margin: 0;
+    font-size: 14px;
+    color: #555;
+}
+
+.actions {
+    display: flex;
+    gap: 8px;
+}
+
+.journal-body {
+    display: grid;
+    grid-template-columns: 300px 1fr;
+    flex: 1;
+}
+
+.note-list {
+    border-right: 1px solid var(--line);
+    padding: 20px 16px;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.note-list h2 {
+    font-size: 14px;
+    font-weight: normal;
+    margin: 0 0 8px;
+}
+
+.note-item {
+    display: grid;
+    grid-template-columns: 1fr auto;
+    gap: 6px;
+    padding: 12px;
+    border: 1px solid var(--line);
+    background: var(--panel);
+    color: inherit;
+    text-decoration: none;
+}
+
+.note-item.selected {
+    border: 2px solid var(--ink);
+    background: #fff;
+}
+
+.note-item .preview {
+    grid-column: 1 / -1;
+    font-size: 13px;
+    color: #666;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.note {
+    padding: 24px 32px;
+    display: flex;
+    flex-direction: column;
+}
+
+.note-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.note-header h2 {
+    margin: 0;
+}
+
+.note-sections {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 24px 40px;
+    margin-top: 24px;
+}
+
+.note-sections h3 {
+    font-size: 15px;
+    margin: 0 0 6px;
+}
+
+.note-sections p {
+    margin: 0;
+    line-height: 1.5;
+}
+
+.note-footer {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-top: auto;
+    padding-top: 16px;
+    border-top: 1px solid var(--line);
+    font-size: 14px;
+    color: #555;
+}
+
+.empty-note {
+    color: #888;
+}
+/* Nyt journalnotat */
+select,
+textarea {
+    font: inherit;
+    padding: 8px 10px;
+    border: 1px solid var(--line);
+    background: #fff;
+}
+
+textarea {
+    resize: vertical;
+    line-height: 1.5;
+}
+
+textarea.invalid {
+    border-color: var(--error);
+}
+
+.title-with-badge {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin: 0;
+}
+
+.page-header .meta {
+    color: #555;
+}
+
+.note-form {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+
+.note-form-top {
+    display: grid;
+    grid-template-columns: minmax(0, 360px) minmax(0, 200px);
+    gap: 20px;
+}
+
+.note-form-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 20px 24px;
+}
+
+.note-form-footer {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding-top: 16px;
+    border-top: 1px solid var(--line);
+    font-size: 14px;
+    color: #555;
+}
+
+.error.global {
+    border: 1px solid var(--error);
+    padding: 10px 14px;
+}
+
+/* Besked og aftale på journalsiden */
+.journal-notice {
+    margin: 16px 32px 0;
+}
+
+.note-meta {
+    margin: 6px 0 0;
+    font-size: 14px;
+    color: #555;
+}
+
+/* Versionshistorik og rettelser */
+.badges {
+    display: inline-flex;
+    gap: 4px;
+    align-items: center;
+}
+
+.reason-field {
+    max-width: 640px;
+}
+
+.intro {
+    margin: 0 0 20px;
+    color: #555;
+    max-width: 70ch;
+}
+
+.version {
+    border: 1px solid var(--line);
+    padding: 20px 24px;
+    margin-bottom: 16px;
+}
+
+.version.current {
+    border: 2px solid var(--ink);
+}
+
+.version-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.version-header h2 {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin: 0;
+    font-size: 18px;
+}
+
+.version .note-sections {
+    margin-top: 16px;
+}
+
+.version .reason {
+    margin: 10px 0 0;
+    font-size: 14px;
 }
