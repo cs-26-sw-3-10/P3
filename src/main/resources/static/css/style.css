@@ -1050,3 +1050,60 @@ textarea.invalid {
     margin: 10px 0 0;
     font-size: 14px;
 }
+
+/* Tofaktor-godkendelse (setup og verify) */
+.login-box h1 {
+    margin: 0;
+    font-size: 22px;
+    color: #293b30;
+}
+
+.login-box .info {
+    color: #555;
+    font-size: 14px;
+    line-height: 1.5;
+}
+
+
+/* Den manuelle nøgle under QR-koden */
+.secret-key {
+    display: block;
+    padding: 10px 12px;
+    background: var(--panel);
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+    font-size: 14px;
+    letter-spacing: 1px;
+    text-align: center;
+    word-break: break-all;
+    user-select: all;
+}
+
+/* Feltet til den 6-cifrede kode */
+input.pin-input {
+    text-align: center;
+    font-size: 22px;
+    font-weight: 600;
+    letter-spacing: 4px;
+    font-variant-numeric: tabular-nums;
+}
+
+input.pin-input:focus {
+    outline: 2px solid var(--accent);
+    outline-offset: 0;
+}
+
+.login-box button.primary {
+    width: 100%;
+    border-radius: 8px;
+}
+
+.login-box .back-link {
+    text-align: center;
+    font-size: 14px;
+}
+
+.login-box .back-link a {
+    color: #3e6046;
+}

@@ -26,7 +26,7 @@ public class TwoFactorController {
     public String setup(HttpSession session, Model model, Principal principal) throws Exception {
         if (userService.hasTotp(principal.getName())) return "redirect:/2fa/verify";
         
-        //generate a secret only if does not exist
+        //genererer kun et secret hvis den ikke eksistere
         String secret = (String) session.getAttribute("pending2faSecret");
         if (secret == null) 
         {   

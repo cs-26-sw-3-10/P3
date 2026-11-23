@@ -1,18 +1,30 @@
 <!DOCTYPE html>
 <html xmlns:th="http://www.thymeleaf.org">
-<head><meta charset="UTF-8"><title>Set up 2FA</title></head>
-<body>
-  <h1>Set up af two-factor authentication</h1>
-  <p>Scan denne QR code med Google Authenticator eller lignede app:</p>
-  <div th:utext="${qrHtml}"></div>
-  <p>QR coden virker ikke? Indtæst denne nøgle manuelt indeni appen: <code th:text="${secret}"></code></p>
+<head th:replace="~{fragments/layout :: head('Opsæt tofaktor-godkendelse')}"></head>
+<body class="login">
+  <main class="login-box">
+    <h1>Opsæt tofaktor-godkendelse</h1>
+    <p class="info">
+      Scan QR-koden med Google Authenticator eller en lignende app,
+      og skriv derefter den 6-cifrede kode fra appen.
+    </p>
 
-  <form th:action="@{/2fa/setup}" method="post">
-    <label>6-cifret  authentication code:
-      <input type="text" name="pin" inputmode="numeric" maxlength="6" autocomplete="one-time-code" required>
-    </label>
-    <button type="submit">Bekræft</button>
-  </form>
-  <p th:if="${error}" th:text="${error}" style="color:red"></p>
+    <div class="qr-box" th:utext="${qrHtml}"></div>
+
+    <p class="info">Kan du ikke scanne? Indtast denne nøgle manuelt:</p>
+    <code class="secret-key" th:text="${secret}"></code>
+
+    <p class="error" th:if="${error}" th:text="${error}"></p>
+
+    <form th:action="@{/2fa/setup}" method="post">
+      <label>Kode fra appen
+    <input class="pin-input" type="text" name="pin"
+       inputmode="numeric" autocomplete="one-time-code"
+       placeholder="000 000" maxlength="7" required autofocus
+       oninput="var d = this.value.replace(/\D/g, '').slice(0, 6);
+                this.value = d.length > 3 ? d.slice(0, 3) + ' ' + d.slice(3) : d;">
+      <button type="submit" class="primary">Bekræft</button>
+    </form>
+  </main>
 </body>
-</html> 
+</html>

@@ -46,7 +46,8 @@ public class TotpService {
     }
 
   public boolean validatePin(String pin, String secret) throws Exception {
-    if (pin == null || secret == null || !pin.matches("\\d{6}")) return false;
+      if (pin != null) pin = pin.replaceAll("\\s+", ""); //fjern mellemrum
+      if (pin == null || secret == null || !pin.matches("\\d{6}")) return false;
 
     SecretKey key = new SecretKeySpec(base32.decode(secret), totp.getAlgorithm());
     Instant now = Instant.now();
