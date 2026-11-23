@@ -8,10 +8,10 @@
   <p>QR coden virker ikke? Indtæst denne nøgle manuelt indeni appen: <code th:text="${secret}"></code></p>
 
   <form th:action="@{/2fa/setup}" method="post">
-    <label>6-cifret code fra appen:
+    <label>6-cifret  authentication code:
       <input type="text" name="pin" inputmode="numeric" maxlength="6" autocomplete="one-time-code" required>
     </label>
-    <button type="submit">Confirm</button>
+    <button type="submit">Bekræft</button>
   </form>
   <p th:if="${error}" th:text="${error}" style="color:red"></p>
 </body>

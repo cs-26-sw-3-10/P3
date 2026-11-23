@@ -2,10 +2,10 @@
 <html xmlns:th="http://www.thymeleaf.org">
 <head><meta charset="UTF-8"><title>Verify 2FA</title></head>
 <body>
-  <h1>Enter your authentication code</h1>
+  <h1>Indtæst din 6-cifret authentication kode</h1>
   <form th:action="@{/2fa/verify}" method="post">
     <input type="text" name="pin" inputmode="numeric" maxlength="6" autocomplete="one-time-code" autofocus required>
-    <button type="submit">Verify</button>
+    <button type="submit">Bekræft</button>
   </form>
   <p th:if="${error}" th:text="${error}" style="color:red"></p>
 </body>
