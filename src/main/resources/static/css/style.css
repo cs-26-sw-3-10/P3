@@ -352,10 +352,6 @@ input.invalid {
     margin-top: 8px;
 }
 
-/* Besked efter en handling */
-.notice { border: 1px solid var(--ink); background: var(--panel); padding: 10px 14px; }
-
-
 /* Kalenderens grunddesign */
 #calendar {
     margin-top: 28px;
@@ -799,6 +795,8 @@ input.invalid {
     box-shadow: none;
     margin: 1px 4px 2px 2px;
     transition: filter 0.2s ease;
+}
+/* Besked efter en handling */
 .notice {
     border: 1px solid var(--ink);
     background: var(--panel);
