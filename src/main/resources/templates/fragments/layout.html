@@ -1,3 +1,5 @@
+<!--https://lucide.dev/icons/. er blevet brugt til svg. til iconerne -->
+
 <!DOCTYPE html>
 <html xmlns:th="http://www.thymeleaf.org">
 
@@ -14,12 +16,64 @@
     <img th:src="@{/images/tinas-logo.png}" alt="Tinas-KST logo">
     <span>Tinas-KST</span>
 </div>
-  <a th:href="@{/kalender}" th:classappend="${active == 'kalender'} ? 'active'">Kalender</a>
-  <a th:href="@{/patienter}" th:classappend="${active == 'patienter'} ? 'active'">Patienter</a>
+
+<!--kalenderen i sidebaren-->
+ <a th:href="@{/kalender}"
+   th:classappend="${active == 'kalender'} ? 'active'">
+
+    <svg class="sidebar-icon"
+         viewBox="0 0 24 24"
+         fill="none"
+         stroke="currentColor">
+
+      <rect x="3" y="4" width="18" height="18" rx="2"/>
+      <path d="M16 2v4M8 2v4M3 10h18"/>
+
+    </svg>
+
+    <span>Kalender</span>
+</a>
+
+<!--patienter i sidebaren-->
+
+  <a th:href="@{/patienter}" th:classappend="${active == 'patienter'} ? 'active'">
+
+    <svg class="sidebar-icon"
+         viewBox="0 0 24 24"
+         fill="none"
+         stroke="currentColor"
+         stroke-width="2"
+         stroke-linecap="round"
+         stroke-linejoin="round"
+         aria-hidden="true">
+        <circle cx="9" cy="7" r="4"/>
+        <path d="M2 21v-2a4 4 0 0 1 4-4h6a4 4 0 0 1 4 4v2"/>
+        <path d="M16 3.1a4 4 0 0 1 0 7.8"/>
+        <path d="M22 21v-2a4 4 0 0 0-3-3.9"/>
+    </svg>
+
+    <span>Patienter</span>
+
+</a>
+
+
+
 
   <!-- Log ud skal være POST med CSRF-token; th:action tilføjer tokenet automatisk -->
   <form th:action="@{/logout}" method="post" class="logout">
-    <button type="submit" class="link">Log ud</button>
+     <button type="submit" class="link">
+
+      <svg class="sidebar-icon" viewBox="0 0 24 24"
+           fill="none" stroke="currentColor"
+           stroke-width="2" stroke-linecap="round"
+           stroke-linejoin="round" aria-hidden="true">
+        <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/>
+        <path d="m16 17 5-5-5-5M21 12H9"/>
+      </svg>
+
+
+      <span>Log ud</span>
+    </button>
   </form>
 </nav>
 </body>

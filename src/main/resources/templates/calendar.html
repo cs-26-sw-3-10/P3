@@ -1,30 +1,346 @@
+
+<!-- Kalenderen bruger FullCalendar via script tags https://fullcalendar.io/docs/vanilla-js -->
+
 <!DOCTYPE html>
 <html xmlns:th="http://www.thymeleaf.org">
+
 <head th:replace="~{fragments/layout :: head('Kalender')}"></head>
+
 <body class="app">
+
+  <!-- Sidebar -->
   <nav th:replace="~{fragments/layout :: sidebar('kalender')}"></nav>
 
-  <main>
-    <header class="page-header">
-      <h1 th:text="${weekLabel}">Uge</h1>
-      <a class="button primary" href="#">+ Book tid</a>
-    </header>
 
-    <div class="week">
-      <section class="day" th:each="day : ${days}">
-        <h2 th:text="${day.label}">Dag</h2>
+<main>
+  <header class="page-header">
 
-        <p class="empty" th:if="${#lists.isEmpty(day.appointments)}">Ingen aftaler</p>
+    <h1>Kalender</h1>
 
-        <article class="appointment"
-                 th:each="a : ${day.appointments}"
-                 th:classappend="${a.status == 'Aflyst'} ? 'cancelled'">
-          <div class="time" th:text="${a.time}">09:00–10:00</div>
-          <div th:text="${a.patient}">Patient</div>
-          <span class="badge" th:text="${a.status}">Status</span>
-        </article>
-      </section>
+    <!-- Farveforklaring -->
+    <div class="calendar-legend">
+
+      <div class="legend-item">
+        <span class="legend-dot planned"></span>
+        <span>Planlagt</span>
+      </div>
+
+      <div class="legend-item">
+        <span class="legend-dot done"></span>
+        <span>Færdig</span>
+      </div>
+
+      <div class="legend-item">
+        <span class="legend-dot cancelled"></span>
+        <span>Aflyst</span>
+      </div>
+
     </div>
-  </main>
+
+    <a class="button primary" href="#">+ Book tid</a>
+
+  </header>
+
+  <!-- FullCalendar -->
+  <div id="calendar"></div>
+
+</main>
+
+
+  <!-- FullCalendar bibliotek -->
+  <script src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.22/index.global.min.js"></script>
+
+  <!-- Dansk sprog -->
+  <script src="https://cdn.jsdelivr.net/npm/@fullcalendar/core@6.1.22/locales-all.global.min.js"></script>
+
+  <script>
+    document.addEventListener('DOMContentLoaded', function() {
+
+      const calendarEl = document.getElementById('calendar');
+
+
+function addViewIcons() {
+
+  const icons = [
+    [
+      '.fc-dayGridMonth-button',
+      '<rect x="3" y="4" width="18" height="18" rx="2"/><path d="M8 2v4M16 2v4M3 10h18M8 14h.01M12 14h.01M16 14h.01M8 18h.01M12 18h.01"/>'
+    ],
+    [
+      '.fc-timeGridWeek-button',
+      '<rect x="3" y="4" width="18" height="18" rx="2"/><path d="M8 2v4M16 2v4M3 10h18M7 14h10M7 18h10"/>'
+    ],
+    [
+      '.fc-timeGridDay-button',
+      '<rect x="3" y="4" width="18" height="18" rx="2"/><path d="M8 2v4M16 2v4M3 10h18"/>'
+    ]
+  ];
+
+  icons.forEach(function([selector, drawing]) {
+    const button = calendarEl.querySelector(selector);
+
+    // Undgå at tilføje samme ikon flere gange
+    if (!button || button.querySelector('.kst-view-icon')) return;
+
+    button.insertAdjacentHTML('afterbegin', `
+      <svg class="kst-view-icon"
+           viewBox="0 0 24 24"
+           fill="none"
+           stroke="currentColor"
+           stroke-width="2"
+           stroke-linecap="round"
+           stroke-linejoin="round"
+           aria-hidden="true">
+        ${drawing}
+      </svg>
+    `);
+  });
+}
+
+
+      // Beregner ISO-ugenummeret ud fra en dato
+      function getISOWeek(date) {
+        const d = new Date(Date.UTC(
+          date.getFullYear(),
+          date.getMonth(),
+          date.getDate()
+        ));
+
+        d.setUTCDate(d.getUTCDate() + 4 - (d.getUTCDay() || 7));
+
+        const yearStart = new Date(Date.UTC(d.getUTCFullYear(), 0, 1));
+
+        return Math.ceil((((d - yearStart) / 86400000) + 1) / 7);
+      }
+
+      // Opret FullCalendar
+      const calendar = new FullCalendar.Calendar(calendarEl, {
+
+        // Generelle indstillinger
+        initialView: 'timeGridWeek',
+        locale: 'da',
+        firstDay: 1,
+        weekends: false,
+        height: 'auto',
+        expandRows: true,
+        nowIndicator: true,
+        allDaySlot: false,
+
+        // Tidsintervaller
+        slotMinTime: '08:00:00',
+        slotMaxTime: '17:00:00',
+        slotDuration: '00:30:00',
+
+        slotLabelFormat: {
+          hour: '2-digit',
+          minute: '2-digit',
+          hour12: false
+        },
+
+        // Navigation
+        headerToolbar: {
+          left: 'prev,next today',
+          center: 'title',
+          right: 'dayGridMonth,timeGridWeek,timeGridDay'
+        },
+
+        buttonText: {
+          today: 'I dag',
+          month: 'Måned',
+          week: 'Uge',
+          day: 'Dag'
+        },
+
+        // Ugenummer og datointerval
+        datesSet: function(info) {
+    addViewIcons();
+
+    const title = calendarEl.querySelector('.fc-toolbar-title');
+
+          if (!title) return;
+
+          // Standardtitel i måned- og dagsvisning
+          if (info.view.type !== 'timeGridWeek') {
+            title.textContent = info.view.title;
+            title.classList.remove('kst-week-title');
+            return;
+          }
+
+          const week = getISOWeek(info.view.currentStart);
+
+          const lastDay = new Date(info.view.currentEnd);
+          lastDay.setDate(lastDay.getDate() - 1);
+
+          const weekText = document.createElement('span');
+          weekText.className = 'kst-week-number';
+          weekText.textContent = 'Uge ' + week;
+
+          const dateText = document.createElement('small');
+          dateText.className = 'kst-week-range';
+
+          dateText.textContent = new Intl.DateTimeFormat('da-DK', {
+            day: 'numeric',
+            month: 'long',
+            year: 'numeric'
+          }).formatRange(info.view.currentStart, lastDay);
+
+          title.replaceChildren(weekText, dateText);
+          title.classList.add('kst-week-title');
+        },
+
+        // CSS-klasser baseret på aftalens status
+        eventClassNames: function(info) {
+    const status = info.event.extendedProps.status;
+
+    if (status === 'Færdig') {
+        return ['kst-event', 'kst-done'];
+    }
+
+    if (status === 'Aflyst') {
+        return ['kst-event', 'kst-cancelled'];
+    }
+
+    return ['kst-event'];
+},
+
+        // Opbygning af aftalekort
+        eventContent: function(info) {
+          const card = document.createElement('div');
+          card.className = 'kst-card';
+
+          const time = document.createElement('div');
+          time.className = 'kst-card-time';
+          time.textContent = info.timeText;
+
+          const patient = document.createElement('div');
+          patient.className = 'kst-card-patient';
+          patient.textContent = info.event.title;
+
+          const status = document.createElement('span');
+          status.className = 'kst-card-status';
+          status.textContent = info.event.extendedProps.status || 'Planlagt';
+
+          card.append(time, patient, status);
+
+          return { domNodes: [card] };
+        },
+
+
+
+        // Fiktive aftaler 
+        events: [
+          {
+            title: 'Patient A',
+            start: '2026-11-16T08:30:00',
+            end: '2026-11-16T09:30:00',
+            extendedProps: { status: 'Færdig' }
+          },
+          {
+            title: 'Patient B',
+            start: '2026-11-16T11:00:00',
+            end: '2026-11-16T12:00:00',
+            extendedProps: { status: 'Færdig' }
+          },
+          {
+            title: 'Patient C',
+            start: '2026-11-16T14:30:00',
+            end: '2026-11-16T15:30:00',
+            extendedProps: { status: 'Færdig' }
+          },
+
+         
+          {
+            title: 'Patient D',
+            start: '2026-11-17T09:00:00',
+            end: '2026-11-17T10:30:00',
+            extendedProps: { status: 'Planlagt' }
+          },
+          {
+            title: 'Patient E',
+            start: '2026-11-17T12:30:00',
+            end: '2026-11-17T13:30:00',
+            extendedProps: { status: 'Aflyst' }
+          },
+          {
+            title: 'Patient F',
+            start: '2026-11-17T15:00:00',
+            end: '2026-11-17T16:00:00',
+            extendedProps: { status: 'Planlagt' }
+          },
+          {
+            title: 'Patient G',
+            start: '2026-11-17T16:00:00',
+            end: '2026-11-17T17:00:00',
+            extendedProps: { status: 'Planlagt' }
+          },
+
+          
+          {
+            title: 'Patient H',
+            start: '2026-11-18T10:30:00',
+            end: '2026-11-18T11:30:00',
+            extendedProps: { status: 'Planlagt' }
+          },
+          {
+            title: 'Patient I',
+            start: '2026-11-18T14:00:00',
+            end: '2026-11-18T15:30:00',
+            extendedProps: { status: 'Planlagt' }
+          },
+
+          
+          {
+            title: 'Patient J',
+            start: '2026-11-19T08:30:00',
+            end: '2026-11-19T09:30:00',
+            extendedProps: { status: 'Planlagt' }
+          },
+          {
+            title: 'Patient K',
+            start: '2026-11-19T11:30:00',
+            end: '2026-11-19T12:30:00',
+            extendedProps: { status: 'Aflyst' }
+          },
+          {
+            title: 'Patient L',
+            start: '2026-11-19T15:00:00',
+            end: '2026-11-19T16:00:00',
+            extendedProps: { status: 'Planlagt' }
+          },
+
+          
+          {
+            title: 'Patient M',
+            start: '2026-11-20T09:00:00',
+            end: '2026-11-20T10:00:00',
+            extendedProps: { status: 'Planlagt' }
+          },
+          {
+            title: 'Patient N',
+            start: '2026-11-20T12:00:00',
+            end: '2026-11-20T13:30:00',
+            extendedProps: { status: 'Planlagt' }
+          },
+          {
+            title: 'Patient O',
+            start: '2026-11-20T15:30:00',
+            end: '2026-11-20T16:30:00',
+            extendedProps: { status: 'Planlagt' }
+          }
+
+        ]
+
+      });
+
+      
+      // Vis kalenderen
+calendar.render();
+
+// Tilføj ikoner til kalenderknapperne
+addViewIcons();
+
+    });
+  </script>
+
 </body>
 </html>
