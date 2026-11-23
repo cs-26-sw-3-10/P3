@@ -21,14 +21,17 @@ public class PatientForm {
     @Size(max = 100, message = "Navnet må højst være 100 tegn")
     private String name;
 
-    @NotNull(message = "Fødselsdato skal udfyldes")
     @Past(message = "Fødselsdatoen skal ligge i fortiden")
     @DateTimeFormat(iso = DateTimeFormat.ISO.DATE)
     private LocalDate birthDate;
 
-    // Tomt er tilladt; ellers 8-15 cifre, mellemrum eller +
+    //8-15 cifre, mellemrum eller +
+    @NotBlank(message ="Telfonnummer skal udfyldes")
     @Pattern(regexp = "^$|^[0-9 +]{8,15}$", message = "Ugyldigt telefonnummer")
     private String phone;
+    
+    @Pattern(regexp ="^$|^[0-9]{4}$", message="Ugyldigt CPR nummer - Indtast udelukkende de sidste 4 tal")
+    private String cpr;
 
     @Email(message = "Ugyldig e-mail")
     private String email;
@@ -43,6 +46,8 @@ public class PatientForm {
     public void setName(String name) { this.name = name; }
     public LocalDate getBirthDate() { return birthDate; }
     public void setBirthDate(LocalDate birthDate) { this.birthDate = birthDate; }
+    public String getCpr() { return cpr;}
+    public void setCpr(String cpr) {this.cpr = cpr;}
     public String getPhone() { return phone; }
     public void setPhone(String phone) { this.phone = phone; }
     public String getEmail() { return email; }

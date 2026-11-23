@@ -1,32 +1,42 @@
 <!DOCTYPE html>
 <html xmlns:th="http://www.thymeleaf.org">
+
 <head th:replace="~{fragments/layout :: head('Ny patient')}"></head>
+
 <body class="app">
-  <nav th:replace="~{fragments/layout :: sidebar('patienter')}"></nav>
+    <nav th:replace="~{fragments/layout :: sidebar('patienter')}"></nav>
 
-  <main>
-    <a class="back" th:href="@{/patienter}">‹ Patienter</a>
-    <header class="page-header">
-      <h1>Ny patient</h1>
-    </header>
+    <main>
+        <a class="back" th:href="@{/patienter}">‹ Patienter</a>
+        <header class="page-header">
+            <h1>Ny patient</h1>
+        </header>
 
-    <!-- th:action tilføjer CSRF-tokenet; th:object binder felterne til PatientForm -->
-    <form th:action="@{/patienter}" th:object="${patientForm}" method="post" class="form" novalidate>
+        <!-- th:action tilføjer CSRF-tokenet; th:object binder felterne til PatientForm -->
+        <form th:action="@{/patienter}" th:object="${patientForm}" method="post" class="form" novalidate>
 
-      <div class="field">
-        <label for="name">Navn *</label>
-        <input id="name" type="text" th:field="*{name}" th:errorclass="invalid" autofocus>
-        <p class="error" th:if="${#fields.hasErrors('name')}" th:errors="*{name}"></p>
+            <div class="field">
+                <label for="name">Navn *</label>
+                <input id="name" type="text" th:field="*{name}" th:errorclass="invalid" autofocus>
+                <p class="error" th:if="${#fields.hasErrors('name')}" th:errors="*{name}"></p>
       </div>
 
       <div class="field">
-        <label for="birthDate">Fødselsdato *</label>
+        <label for="birthDate">Fødselsdato</label>
         <input id="birthDate" type="date" th:field="*{birthDate}" th:errorclass="invalid">
         <p class="error" th:if="${#fields.hasErrors('birthDate')}" th:errors="*{birthDate}"></p>
       </div>
 
       <div class="field">
-        <label for="phone">Telefon</label>
+        <label for="cpr">CPR 4 cifre</label>
+        <input type="text" inputmode="numeric" pattern="\d{4}" maxlength="4"
+          th:field="*{cpr}" th:errorclass="invalid">
+        <p class="error" th:if="${#fields.hasErrors('cpr')}"
+          th:errors="*{cpr}"></p>      
+      </div>
+
+      <div class="field">
+        <label for="phone">Telefon *</label>
         <input id="phone" type="tel" th:field="*{phone}" th:errorclass="invalid">
         <p class="error" th:if="${#fields.hasErrors('phone')}" th:errors="*{phone}"></p>
       </div>
