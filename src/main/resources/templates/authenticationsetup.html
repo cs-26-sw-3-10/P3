@@ -2,13 +2,13 @@
 <html xmlns:th="http://www.thymeleaf.org">
 <head><meta charset="UTF-8"><title>Set up 2FA</title></head>
 <body>
-  <h1>Set up two-factor authentication</h1>
-  <p>Scan this QR code with Google Authenticator, Authy or similar:</p>
+  <h1>Set up af two-factor authentication</h1>
+  <p>Scan denne QR code med Google Authenticator eller lignede app:</p>
   <div th:utext="${qrHtml}"></div>
-  <p>Can't scan? Enter this key manually: <code th:text="${secret}"></code></p>
+  <p>QR coden virker ikke? Indtæst denne nøgle manuelt indeni appen: <code th:text="${secret}"></code></p>
 
   <form th:action="@{/2fa/setup}" method="post">
-    <label>6-digit code:
+    <label>6-cifret code fra appen:
       <input type="text" name="pin" inputmode="numeric" maxlength="6" autocomplete="one-time-code" required>
     </label>
     <button type="submit">Confirm</button>

@@ -12,7 +12,8 @@ import java.security.Principal;
 public class TwoFactorController {
 
     private static final int MAX_ATTEMPTS = 5;
-
+    private static final String APP_NAME = "Tina_KST Journal Website";
+    
     private final TotpService totpService;
     private final UserService userService;
 
@@ -33,7 +34,7 @@ public class TwoFactorController {
         session.setAttribute("pending2faSecret", secret);
         }
         session.setAttribute("pending2faSecret", secret);
-        model.addAttribute("qrHtml", totpService.getQrCodeHtml("MyApp", principal.getName(), secret));
+        model.addAttribute("qrHtml", totpService.getQrCodeHtml(APP_NAME, principal.getName(), secret));
         model.addAttribute("secret", secret);
         return "authenticationsetup";
     }
@@ -52,7 +53,7 @@ public class TwoFactorController {
         }
         model.addAttribute("error", "Invalid code - please try again.");
         model.addAttribute("secret", secret);
-        model.addAttribute("qrHtml", totpService.getQrCodeHtml("MyApp", principal.getName(), secret));
+        model.addAttribute("qrHtml", totpService.getQrCodeHtml(APP_NAME, principal.getName(), secret));
         return "authenticationsetup";
     }
 
