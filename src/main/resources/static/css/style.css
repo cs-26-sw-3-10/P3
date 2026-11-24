@@ -1050,3 +1050,215 @@ textarea.invalid {
     margin: 10px 0 0;
     font-size: 14px;
 }
+
+
+/* Bookingvindue */
+.booking-dialog {
+    width: min(440px, 92vw);
+    max-height: 90vh;
+    overflow-y: auto;
+    padding: 26px;
+
+    border: 1px solid #d8e3d9;
+    border-radius: 14px;
+    background: #ffffff;
+    color: #293b30;
+
+    box-shadow: 0 12px 40px rgba(0, 0, 0, 0.15);
+}
+
+/* Baggrunden når vinduet åbnes */
+.booking-dialog::backdrop {
+    background: rgba(24, 42, 29, 0.35);
+}
+
+/* Formular */
+.booking-form {
+    display: flex;
+    flex-direction: column;
+    gap: 18px;
+}
+
+/* Overskrift */
+.booking-header h2 {
+    margin: 0 0 6px;
+    font-size: 22px;
+}
+
+.booking-header p {
+    margin: 0;
+    color: #64816c;
+    font-size: 14px;
+}
+
+/* Dato og tidspunkt side om side */
+.booking-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 14px;
+}
+
+/* Formularfelter */
+.booking-dialog .field {
+    display: flex;
+    flex-direction: column;
+    gap: 7px;
+    min-width: 0;
+}
+
+.booking-dialog label {
+    font-size: 14px;
+    font-weight: 600;
+}
+
+/* Input og dropdown */
+.booking-form input,
+.booking-form select {
+    width: 100%;
+    min-width: 0;
+    padding: 11px 12px;
+
+    border: 1px solid #cbdccd;
+    border-radius: 8px;
+    background: #ffffff;
+    color: #293b30;
+    font: inherit;
+}
+
+/* Fokus på input */
+.booking-dialog input:focus,
+.booking-dialog select:focus {
+    outline: 2px solid #88aa8e;
+    outline-offset: 1px;
+}
+
+/* Knapper */
+.booking-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 10px;
+    margin-top: 8px;
+}
+
+.booking-actions button {
+    border-radius: 8px;
+}
+
+@media (max-width: 480px) {
+    .booking-row {
+        grid-template-columns: 1fr;
+    }
+}
+
+
+/* Aftalevindue */
+.appointment-dialog {
+    width: min(460px, 92vw);
+}
+
+.appointment-statuses {
+    border: none;
+    padding: 0;
+    margin: 22px 0;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.appointment-statuses legend {
+    font-size: 14px;
+    font-weight: 600;
+    margin-bottom: 12px;
+}
+
+/* Hver statusmulighed */
+.appointment-option {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+
+    border: 1px solid #d8e3d9;
+    border-radius: 10px;
+    padding: 13px 14px;
+
+    cursor: pointer;
+    transition: background-color 0.2s ease;
+}
+
+.appointment-option:hover {
+    background: #f1f6f1;
+}
+
+/* Valgt status */
+.appointment-option:has(input:checked) {
+    background: #edf5ed;
+    border-color: #6d9976;
+}
+
+.appointment-statuses input[type="radio"] {
+    width: 17px;
+    height: 17px;
+    margin: 0;
+    accent-color: #52785e;
+}
+
+/* Knapper */
+.appointment-actions {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 12px;
+}
+
+.appointment-actions .booking-actions {
+    margin-top: 0;
+}
+
+/* Slet-knap */
+.delete-link {
+    background: transparent;
+    border: none;
+    color: #b34b55;
+    padding: 10px 0;
+    font-weight: 600;
+    cursor: pointer;
+}
+
+.delete-link:hover {
+    text-decoration: underline;
+}
+
+/* Slettebekræftelse */
+.delete-warning {
+    background: #fff1f2;
+    border: 1px solid #efc3ca;
+    border-radius: 10px;
+    padding: 14px;
+}
+
+.delete-warning p {
+    margin: 0;
+    font-size: 14px;
+}
+
+.delete-button {
+    background: #b34b55;
+    color: white;
+    border: none;
+    border-radius: 8px;
+}
+
+.delete-button:hover {
+    background: #963843;
+}
+
+/* Sørg for at skjulte elementer forbliver skjult */
+.appointment-dialog [hidden] {
+    display: none !important;
+}
+
+/* Skjul dialogen når den ikke er åben */
+dialog.booking-dialog:not([open]) {
+    display: none !important;
+}
