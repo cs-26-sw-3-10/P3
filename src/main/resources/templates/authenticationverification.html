@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: head('Bekræft login')}"></head>
+<body class="login">
+  <main class="login-box">
+    <h1>Bekræft login</h1>
+    <p class="info">Åbn din authenticator app og skriv den 6-cifrede kode.</p>
+
+    <p class="error" th:if="${error}" th:text="${error}"></p>
+
+    <form th:action="@{/2fa/verify}" method="post">
+      <label>Kode
+          <input class="pin-input" type="text" name="pin"
+       inputmode="numeric" autocomplete="one-time-code"
+       placeholder="000 000" maxlength="7" required autofocus
+       oninput="var d = this.value.replace(/\D/g, '').slice(0, 6);
+                this.value = d.length > 3 ? d.slice(0, 3) + ' ' + d.slice(3) : d;">
+      </label>
+      <button type="submit" class="primary">Bekræft</button>
+    </form>
+  </main>
+</body>
+</html>
