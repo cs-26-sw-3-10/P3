@@ -37,12 +37,166 @@
 
     </div>
 
-    <a class="button primary" href="#">+ Book tid</a>
+<button type="button"
+        class="button primary"
+        id="openBookingModal">
+    + Book tid
+</button>
 
   </header>
 
   <!-- FullCalendar -->
   <div id="calendar"></div>
+
+<!-- Bookingvindue -->
+<dialog id="bookingDialog" class="booking-dialog">
+
+  <form id="bookingForm" class="booking-form">
+
+    <div class="booking-header">
+      <h2>Book en behandling</h2>
+      <p>Opret en ny aftale for en patient</p>
+    </div>
+
+    <!-- Vælg patient -->
+    <div class="field">
+      <label for="bookingPatient">Patient</label>
+      <select id="bookingPatient" required>
+        <option value="">Vælg patient</option>
+        <option value="Patient A">Patient A</option>
+        <option value="Patient B">Patient B</option>
+        <option value="Patient C">Patient C</option>
+        <option value="Patient D">Patient D</option>
+        <option value="Patient E">Patient E</option>
+        <option value="Patient F">Patient F</option>
+      </select>
+    </div>
+
+    <div class="booking-row">
+
+      <!-- Dato -->
+      <div class="field">
+        <label for="bookingDate">Dato</label>
+        <input type="date"
+               id="bookingDate" required>
+      </div>
+
+      <!-- Starttidspunkt -->
+      <div class="field">
+        <label for="bookingTime">Starttidspunkt</label>
+        <input type="time"
+               id="bookingTime"
+               value="09:00"
+               min="08:00"
+               max="16:30"
+               step="1800"
+               required>
+      </div>
+
+    </div>
+
+    <!-- Varighed -->
+    <div class="field">
+      <label for="bookingDuration">Varighed</label>
+      <select id="bookingDuration">
+        <option value="30">30 minutter</option>
+        <option value="60" selected>60 minutter</option>
+        <option value="90">90 minutter</option>
+      </select>
+    </div>
+
+    <!-- Knapper -->
+    <div class="booking-actions">
+      <button type="button" id="cancelBooking">
+        Annuller
+      </button>
+
+      <button type="submit" class="button primary">
+        Opret aftale
+      </button>
+    </div>
+
+  </form>
+
+</dialog>
+
+
+<!-- Vindue til at administrere en aftale -->
+<dialog id="appointmentDialog"
+        class="booking-dialog appointment-dialog">
+
+  <div class="booking-header">
+    <h2>Administrer aftale</h2>
+    <p id="appointmentDetails"></p>
+  </div>
+
+  <!-- Vælg aftalens status -->
+  <fieldset class="appointment-statuses">
+    <legend>Vælg status</legend>
+
+    <label class="appointment-option">
+      <input type="radio" name="appointmentStatus"
+             value="Planlagt">
+      <span class="legend-dot planned"></span>
+      <span>Planlagt</span>
+    </label>
+
+    <label class="appointment-option">
+      <input type="radio" name="appointmentStatus"
+             value="Færdig">
+      <span class="legend-dot done"></span>
+      <span>Færdig</span>
+    </label>
+
+    <label class="appointment-option">
+      <input type="radio" name="appointmentStatus"
+             value="Aflyst">
+      <span class="legend-dot cancelled"></span>
+      <span>Aflyst</span>
+    </label>
+
+  </fieldset>
+
+  <!-- Almindelige handlinger -->
+  <div id="appointmentActions" class="appointment-actions">
+
+    <button type="button"
+            class="delete-link"
+            id="startDeleteAppointment">
+      Slet aftale
+    </button>
+
+    <div class="booking-actions">
+      <button type="button" id="closeAppointment">
+        Luk
+      </button>
+
+      <button type="button" class="button primary"
+              id="saveAppointment">
+        Gem status
+      </button>
+    </div>
+
+  </div>
+
+  <!-- Bekræft sletning -->
+  <div id="deleteWarning" class="delete-warning" hidden>
+    <p>Er du sikker på, at du vil slette aftalen?</p>
+
+    <div class="booking-actions">
+      <button type="button" id="cancelDeleteAppointment">
+        Fortryd
+      </button>
+
+      <button type="button" id="confirmDeleteAppointment"
+              class="delete-button">
+        Ja, slet aftalen
+      </button>
+    </div>
+  </div>
+
+</dialog>
+
 
 </main>
 
@@ -57,6 +211,7 @@
     document.addEventListener('DOMContentLoaded', function() {
 
       const calendarEl = document.getElementById('calendar');
+      let selectedAppointment = null;
 
 
 function addViewIcons() {
@@ -204,7 +359,7 @@ function addViewIcons() {
 },
 
         // Opbygning af aftalekort
-        eventContent: function(info) {
+        eventContent: function(info) { 
           const card = document.createElement('div');
           card.className = 'kst-card';
 
@@ -226,121 +381,228 @@ function addViewIcons() {
         },
 
 
+eventClick: function(info) {
+    info.jsEvent.preventDefault();
 
-        // Fiktive aftaler 
+    // Gem den aftale Tina har klikket på
+    selectedAppointment = info.event;
+
+    const start = info.event.start;
+    const end = info.event.end;
+
+    // Formater dato og tidspunkt
+    const date = start.toLocaleDateString('da-DK', {
+        weekday: 'long',
+        day: 'numeric',
+        month: 'long'
+    });
+
+    const startTime = start.toLocaleTimeString('da-DK', {
+        hour: '2-digit',
+        minute: '2-digit'
+    });
+
+    const endTime = end ? end.toLocaleTimeString('da-DK', {
+        hour: '2-digit',
+        minute: '2-digit'
+    }) : '';
+
+    // Vis oplysninger i vinduet
+    document.getElementById('appointmentDetails').textContent =
+        `${info.event.title} · ${date} · ${startTime}–${endTime}`;
+
+    // Find aftalens nuværende status
+    const status = info.event.extendedProps.status || 'Planlagt';
+
+    document.querySelectorAll(
+        'input[name="appointmentStatus"]'
+    ).forEach(function(input) {
+        input.checked = input.value === status;
+    });
+
+    // Vis normale knapper og skjul slettebekræftelse
+    document.getElementById('appointmentActions').hidden = false;
+    document.getElementById('deleteWarning').hidden = true;
+
+    // Åbn vinduet
+    document.getElementById('appointmentDialog').showModal();
+},
+
+
+        // Eksempeldata
         events: [
           {
             title: 'Patient A',
-            start: '2026-11-16T08:30:00',
-            end: '2026-11-16T09:30:00',
-            extendedProps: { status: 'Færdig' }
+            start: '2024-06-10T09:00:00',
+            end: '2024-06-10T10:00:00',
+            extendedProps: {
+              status: 'Planlagt'
+            }
           },
           {
             title: 'Patient B',
-            start: '2026-11-16T11:00:00',
-            end: '2026-11-16T12:00:00',
-            extendedProps: { status: 'Færdig' }
+            start: '2024-06-11T11:00:00',
+            end: '2024-06-11T12:30:00',
+            extendedProps: {
+              status: 'Færdig'
+            }
           },
           {
             title: 'Patient C',
-            start: '2026-11-16T14:30:00',
-            end: '2026-11-16T15:30:00',
-            extendedProps: { status: 'Færdig' }
-          },
-
-         
-          {
-            title: 'Patient D',
-            start: '2026-11-17T09:00:00',
-            end: '2026-11-17T10:30:00',
-            extendedProps: { status: 'Planlagt' }
-          },
-          {
-            title: 'Patient E',
-            start: '2026-11-17T12:30:00',
-            end: '2026-11-17T13:30:00',
-            extendedProps: { status: 'Aflyst' }
-          },
-          {
-            title: 'Patient F',
-            start: '2026-11-17T15:00:00',
-            end: '2026-11-17T16:00:00',
-            extendedProps: { status: 'Planlagt' }
-          },
-          {
-            title: 'Patient G',
-            start: '2026-11-17T16:00:00',
-            end: '2026-11-17T17:00:00',
-            extendedProps: { status: 'Planlagt' }
-          },
-
-          
-          {
-            title: 'Patient H',
-            start: '2026-11-18T10:30:00',
-            end: '2026-11-18T11:30:00',
-            extendedProps: { status: 'Planlagt' }
-          },
-          {
-            title: 'Patient I',
-            start: '2026-11-18T14:00:00',
-            end: '2026-11-18T15:30:00',
-            extendedProps: { status: 'Planlagt' }
-          },
-
-          
-          {
-            title: 'Patient J',
-            start: '2026-11-19T08:30:00',
-            end: '2026-11-19T09:30:00',
-            extendedProps: { status: 'Planlagt' }
-          },
-          {
-            title: 'Patient K',
-            start: '2026-11-19T11:30:00',
-            end: '2026-11-19T12:30:00',
-            extendedProps: { status: 'Aflyst' }
-          },
-          {
-            title: 'Patient L',
-            start: '2026-11-19T15:00:00',
-            end: '2026-11-19T16:00:00',
-            extendedProps: { status: 'Planlagt' }
-          },
-
-          
-          {
-            title: 'Patient M',
-            start: '2026-11-20T09:00:00',
-            end: '2026-11-20T10:00:00',
-            extendedProps: { status: 'Planlagt' }
-          },
-          {
-            title: 'Patient N',
-            start: '2026-11-20T12:00:00',
-            end: '2026-11-20T13:30:00',
-            extendedProps: { status: 'Planlagt' }
-          },
-          {
-            title: 'Patient O',
-            start: '2026-11-20T15:30:00',
-            end: '2026-11-20T16:30:00',
-            extendedProps: { status: 'Planlagt' }
+            start: '2024-06-12T14:00:00',
+            end: '2024-06-12T15:30:00',
+            extendedProps: {
+              status: 'Aflyst'
+            }
           }
-
         ]
-
       });
+// Find aftalevinduet
+const appointmentDialog =
+    document.getElementById('appointmentDialog');
 
-      
-      // Vis kalenderen
+const appointmentActions =
+    document.getElementById('appointmentActions');
+
+const deleteWarning =
+    document.getElementById('deleteWarning');
+
+
+// Luk vinduet
+document.getElementById('closeAppointment')
+    .addEventListener('click', function() {
+        appointmentDialog.close();
+    });
+
+
+// Gem den valgte status
+document.getElementById('saveAppointment')
+    .addEventListener('click', function() {
+
+        const selectedStatus = document.querySelector(
+            'input[name="appointmentStatus"]:checked'
+        );
+
+        if (!selectedAppointment || !selectedStatus) return;
+
+        selectedAppointment.setExtendedProp(
+            'status',
+            selectedStatus.value
+        );
+
+        appointmentDialog.close();
+    });
+
+
+// Vis bekræftelse før sletning
+document.getElementById('startDeleteAppointment')
+    .addEventListener('click', function() {
+        appointmentActions.hidden = true;
+        deleteWarning.hidden = false;
+    });
+
+
+// Fortryd sletning
+document.getElementById('cancelDeleteAppointment')
+    .addEventListener('click', function() {
+        deleteWarning.hidden = true;
+        appointmentActions.hidden = false;
+    });
+
+
+// Slet aftalen
+document.getElementById('confirmDeleteAppointment')
+    .addEventListener('click', function() {
+
+        if (!selectedAppointment) return;
+
+        selectedAppointment.remove();
+        selectedAppointment = null;
+
+        appointmentDialog.close();
+    });
+
+
+// HTML-elementer til bookingvinduet
+const bookingDialog = document.getElementById('bookingDialog');
+const bookingForm = document.getElementById('bookingForm');
+const bookingDate = document.getElementById('bookingDate');
+
+// Åbn bookingvinduet
+document.getElementById('openBookingModal').addEventListener('click', function() {
+
+
+// Åbn bookingvinduet automatisk fra patientjournalen
+const params = new URLSearchParams(window.location.search);
+
+if (params.get('book') === '1') {
+    document.getElementById('openBookingModal').click();
+}
+
+
+    // Brug datoen fra den viste kalender
+    const date = calendar.getDate();
+
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+    const day = String(date.getDate()).padStart(2, '0');
+
+    bookingDate.value = `${year}-${month}-${day}`;
+
+    bookingDialog.showModal();
+});
+
+// Luk bookingvinduet
+document.getElementById('cancelBooking').addEventListener('click', function() {
+    bookingDialog.close();
+});
+
+// Opret aftale
+bookingForm.addEventListener('submit', function(event) {
+    event.preventDefault();
+
+    const patient = document.getElementById('bookingPatient').value;
+    const date = bookingDate.value;
+    const time = document.getElementById('bookingTime').value;
+    const duration = Number(document.getElementById('bookingDuration').value);
+
+    // Beregn start- og sluttidspunkt
+    const start = new Date(`${date}T${time}`);
+    const end = new Date(start.getTime() + duration * 60000);
+
+    // Kontrollér at aftalen ligger mellem 08 og 17
+    const closingTime = new Date(`${date}T17:00`);
+
+    if (start.getHours() < 8 || end > closingTime) {
+        alert('Aftalen skal ligge mellem kl. 08:00 og 17:00.');
+        return;
+    }
+
+    // Tilføj aftalen til FullCalendar
+    calendar.addEvent({
+        title: patient,
+        start: start,
+        end: end,
+        extendedProps: {
+            status: 'Planlagt'
+        }
+    });
+
+    // Vis ugen hvor aftalen ligger
+    calendar.changeView('timeGridWeek', start);
+
+       // Luk vinduet og nulstil formularen
+    bookingDialog.close();
+    bookingForm.reset();
+});
+
+// Vis kalenderen, efter alle knapper er registreret
 calendar.render();
-
-// Tilføj ikoner til kalenderknapperne
 addViewIcons();
 
-    });
-  </script>
+});
+</script>
 
 </body>
 </html>
+
